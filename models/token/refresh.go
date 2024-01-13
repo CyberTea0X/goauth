@@ -50,9 +50,12 @@ func (t *RefreshToken) InsertToDb(db *sql.DB) (*RefreshToken, error) {
 }
 
 func (t *RefreshToken) Exists(db *sql.DB) (bool, error) {
+    var exists bool
 	query := "SELECT EXISTS(SELECT * FROM refresh_tokens WHERE user_id=? AND device_id=? AND expires_at=?)"
 	res, err := db.Query(query, t.UserID, t.DeviceID, t.ExpiresAt.Unix())
-	return res.Next(), err
+    res.Next()
+    res.Scan(&exists)
+	return exists, err
 }
 
 // Deletes old refresh token from the database (not exactly token, but it's identifier)
