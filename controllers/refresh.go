@@ -1,17 +1,17 @@
 package controllers
 
 import (
-	"errors"
+	"log"
 	"net/http"
+	"time"
 
-	"github.com/CyberTea0X/delta_art/src/backend/models"
-	"github.com/CyberTea0X/delta_art/src/backend/utils/token"
+	"github.com/CyberTea0X/goauth/src/backend/models/token"
 	"github.com/gin-gonic/gin"
 )
 
 // Structure describing the json fields that should be in the refresh request
 type RefreshInput struct {
-    RefreshToken string `json:"token" binding:"required"`
+	RefreshToken string `json:"token" binding:"required"`
 }
 
 func (p *PublicController) Refresh(c *gin.Context) {
@@ -21,60 +21,60 @@ func (p *PublicController) Refresh(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-    old_token, err := token.RefreshParse(input.RefreshToken)
 
-    if err != nil {
-		c.JSON(http.StatusBadRequest, err)
-        return 
-    }
+	old_token, err := token.RefreshFromString(input.RefreshToken, p.RefreshTokenCfg.Secret)
 
-    user_id, err := token.ExtractUint(old_token, "user_id")
-
-    if err != nil {
-        c.JSON(http.StatusBadRequest, err)
-        return 
-    }
-
-    device_id, err := token.ExtractUint(old_token, "device_id")
-
-    if err != nil {
-        c.JSON(http.StatusBadRequest, err)
-        return 
-    }
-
-    if models.RefreshTokenExists(p.DB, user_id, device_id) == false {
-        c.JSON(http.StatusBadRequest, errors.New("token does not exist"))
-        return
-    }
-
-    models.DeleteOldTokens(p.DB, user_id, device_id)
-
-    refresh_token, err := token.GenerateRefresh(user_id, device_id)
-
-    if err != nil {
-		c.JSON(http.StatusBadRequest, err)
-        return 
-    }
-
-    access_token, expires_at, err := token.GenerateAccessToken(user_id)
-
-    refresh_model := models.RefreshToken{}
-    refresh_model.Token = refresh_token
-    refresh_model.UserID = user_id
-    refresh_model.DeviceID = device_id
-
-    if _, err := refresh_model.SaveToken(p.DB); err != nil {
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-    }
+		return
+	}
 
-    if err != nil {
-		c.JSON(http.StatusBadRequest, err)
-        return 
-    }
-    c.JSON(http.StatusOK, gin.H{
-        "accessToken": access_token,
-        "refreshToken": refresh_token,
-        "expires_at": expires_at,
-    })
+	exists, err := old_token.Exists(p.DB)
+	if err != nil {
+		log.Println("Error while checking if refresh token exists: ", err.Error())
+	}
+
+	if exists == false {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "token does not exist"})
+		return
+	}
+
+	err = token.DeleteOldToken(p.DB, old_token.UserID, old_token.DeviceID)
+
+	if err != nil {
+		log.Println("Error deleting old tokens: ", err.Error())
+	}
+
+	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.Lifespan))
+	refreshClaims := token.NewRefresh(old_token.DeviceID, old_token.UserID, expiresAt)
+	refreshToken, err := refreshClaims.TokenString(p.RefreshTokenCfg.Secret)
+
+	if err != nil {
+		log.Println("Error generating refresh token from old token: ", err.Error())
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	expiresAt = time.Now().Add(time.Minute * time.Duration(p.AccessTokenCfg.Lifespan))
+	accessClaims := token.NewAccess(old_token.UserID, expiresAt)
+	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
+
+	if err != nil {
+		log.Println("Error generating access token from old refresh token: ", err.Error())
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	if _, err := refreshClaims.InsertToDb(p.DB); err != nil {
+		log.Println("Error inserting refresh token identifier to the database: ", err.Error())
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"accessToken":  accessToken,
+		"refreshToken": refreshToken,
+		"expires_at":   expiresAt.Unix(),
+	})
 
 }

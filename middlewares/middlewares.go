@@ -1,9 +1,9 @@
 package middlewares
 
 import (
-	"net/http"
+	"github.com/CyberTea0X/goauth/src/backend/token"
 	"github.com/gin-gonic/gin"
-    "github.com/CyberTea0X/delta_art/src/backend/utils/token"
+	"net/http"
 )
 
 func JwtAuthMiddleware() gin.HandlerFunc {
@@ -14,7 +14,7 @@ func JwtAuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-        c.Set("access_token", token)
+		c.Set("access_token", token)
 		c.Next()
 	}
 }
