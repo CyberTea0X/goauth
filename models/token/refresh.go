@@ -8,6 +8,16 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+const refresh_table_ddl = "" +
+	"CREATE TABLE IF NOT EXISTS `refresh_tokens` (" +
+	"`id` int(10) unsigned NOT NULL AUTO_INCREMENT," +
+	"`device_id` int(10) unsigned NOT NULL," +
+	"`user_id` int(10) unsigned NOT NULL," +
+	"`expires_at` int(10) unsigned NOT NULL," +
+	"PRIMARY KEY (`id`)," +
+	"UNIQUE KEY `refresh_tokens_device_id_IDX` (`device_id`,`user_id`,`expires_at`) USING BTREE" +
+	") ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;"
+
 type RefreshToken struct {
 	jwt.RegisteredClaims
 	DeviceID uint `json:"device_id"`
@@ -50,11 +60,11 @@ func (t *RefreshToken) InsertToDb(db *sql.DB) (*RefreshToken, error) {
 }
 
 func (t *RefreshToken) Exists(db *sql.DB) (bool, error) {
-    var exists bool
+	var exists bool
 	query := "SELECT EXISTS(SELECT * FROM refresh_tokens WHERE user_id=? AND device_id=? AND expires_at=?)"
 	res, err := db.Query(query, t.UserID, t.DeviceID, t.ExpiresAt.Unix())
-    res.Next()
-    res.Scan(&exists)
+	res.Next()
+	res.Scan(&exists)
 	return exists, err
 }
 
@@ -62,5 +72,11 @@ func (t *RefreshToken) Exists(db *sql.DB) (bool, error) {
 func DeleteOldToken(db *sql.DB, user_id uint, device_id uint) error {
 	query := "DELETE FROM refresh_tokens WHERE user_id =? AND device_id =?"
 	_, err := db.Exec(query, user_id, device_id)
+	return err
+}
+
+// Creates refresh token table if it doesn't already exist
+func CreateRefreshTable(db *sql.DB) error {
+	_, err := db.Exec(refresh_table_ddl)
 	return err
 }

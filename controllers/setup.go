@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/CyberTea0X/goauth/src/backend/models"
+	"github.com/CyberTea0X/goauth/src/backend/models/token"
 	"github.com/caarlos0/env/v10"
 	// Import mysql driver for sq.Open to work
 	_ "github.com/go-sql-driver/mysql"
@@ -43,6 +44,7 @@ func Setup() *PublicController {
 	if err != nil {
 		log.Fatal("Error connecting to the database: ", err.Error())
 	}
+	token.CreateRefreshTable(db)
 
 	pCtrl.DB = db
 	return pCtrl

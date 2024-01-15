@@ -18,6 +18,9 @@ func ParseWithClaims(token string, claims jwt.Claims, secret string) (*jwt.Token
 		}
 		return []byte(secret), nil
 	})
+	if !jwt.Valid {
+		return nil, errors.New("Invalid token")
+	}
 	return jwt, result
 }
 

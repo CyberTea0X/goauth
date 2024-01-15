@@ -12,6 +12,14 @@ import (
 )
 
 func main() {
+	debug := os.Getenv("DEBUG")
+	if debug != "" && debug != "0" {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		fmt.Println("Debug log enabled")
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	c := controllers.Setup()
 
 	port := "8080"
@@ -19,18 +27,11 @@ func main() {
 
 	public := router.Group("api")
 	public.GET("health_check", c.HealthCheck)
-	public.POST("login", c.Login)
-	public.POST("refresh", c.Refresh)
+	public.GET("login", c.Login)
+	public.GET("refresh", c.Refresh)
+	public.GET("auth", c.Auth)
 
-	// protected := router.Group("api")
-	// protected.Use(middlewares.JwtAuthMiddleware())
-	// protected.GET("/user", c.CurrentUser)
-	fmt.Println("goauth api server starting on port ", port)
-	debug := os.Getenv("DEBUG")
-	if debug != "" {
-		log.SetFlags(log.LstdFlags | log.Lshortfile)
-		fmt.Println("Debug log enabled")
-	}
+	fmt.Println("Auth server starting on port", port)
 
 	router.Run(":" + port)
 }

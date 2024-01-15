@@ -45,10 +45,10 @@ func (p *PublicController) Refresh(c *gin.Context) {
 		log.Println("Error deleting old tokens: ", err.Error())
 	}
 
-    if old_token.ExpiresAt.Time.Before(time.Now()) {
+	if old_token.ExpiresAt.Time.Before(time.Now()) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "token expired"})
 		return
-    }
+	}
 
 	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.Lifespan))
 	refreshClaims := token.NewRefresh(old_token.DeviceID, old_token.UserID, expiresAt)
