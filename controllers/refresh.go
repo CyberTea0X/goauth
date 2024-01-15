@@ -50,7 +50,7 @@ func (p *PublicController) Refresh(c *gin.Context) {
 		return
 	}
 
-	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.Lifespan))
+	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.LifespanHour))
 	refreshClaims := token.NewRefresh(old_token.DeviceID, old_token.UserID, expiresAt)
 	refreshToken, err := refreshClaims.TokenString(p.RefreshTokenCfg.Secret)
 
@@ -60,7 +60,7 @@ func (p *PublicController) Refresh(c *gin.Context) {
 		return
 	}
 
-	expiresAt = time.Now().Add(time.Minute * time.Duration(p.AccessTokenCfg.Lifespan))
+	expiresAt = time.Now().Add(time.Minute * time.Duration(p.AccessTokenCfg.LifespanMinute))
 	accessClaims := token.NewAccess(old_token.UserID, expiresAt)
 	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 

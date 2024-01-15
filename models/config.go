@@ -4,25 +4,35 @@ import (
 	"fmt"
 )
 
-type DatabaseConfig struct {
-	Dbdriver   string `env:"DB_DRIVER,required"`
-	DbHost     string `env:"DB_HOST,required"`
-	DbUser     string `env:"DB_USER,required"`
-	DbPassword string `env:"DB_PASSWORD,required"`
-	DbName     string `env:"DB_NAME,required"`
-	DbPort     string `env:"DB_PORT,required"`
+type TomlConfig struct {
+	Database  DatabaseConfig
+	TokensCfg TokensCfg `toml:"tokens"`
 }
 
-func (c *DatabaseConfig) GetUrl() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", c.DbUser, c.DbPassword, c.DbHost, c.DbPort, c.DbName)
+type TokensCfg struct {
+	AccessTokenCfg  AccessTokenCfg  `toml:"access"`
+	RefreshTokenCfg RefreshTokenCfg `toml:"refresh"`
 }
 
 type AccessTokenCfg struct {
-	Secret   string `env:"ACCESS_TOKEN_SECRET,required"`
-	Lifespan uint   `env:"ACCESS_TOKEN_MINUTE_LIFESPAN,required"`
+	Secret         string
+	LifespanMinute uint `toml:"lifespan_minute"`
 }
 
 type RefreshTokenCfg struct {
-	Secret   string `env:"REFRESH_TOKEN_SECRET,required"`
-	Lifespan uint   `env:"REFRESH_TOKEN_HOUR_LIFESPAN,required"`
+	Secret       string
+	LifespanHour uint `toml:"lifespan_hour"`
+}
+
+type DatabaseConfig struct {
+	Driver   string
+	Host     string
+	User     string
+	Password string
+	Name     string `toml:"database"`
+	Port     string
+}
+
+func (c *DatabaseConfig) GetUrl() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", c.User, c.Password, c.Host, c.Port, c.Name)
 }

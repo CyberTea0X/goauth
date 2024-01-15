@@ -2,15 +2,17 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/CyberTea0X/goauth/src/backend/models"
 	"github.com/CyberTea0X/goauth/src/backend/models/token"
-	"github.com/caarlos0/env/v10"
+	"github.com/gin-gonic/gin"
+	"github.com/pelletier/go-toml/v2"
+
 	// Import mysql driver for sq.Open to work
 	_ "github.com/go-sql-driver/mysql"
-	// Autoloading of environment variables from .env file
-	_ "github.com/joho/godotenv/autoload"
 )
 
 type PublicController struct {
@@ -20,26 +22,35 @@ type PublicController struct {
 }
 
 func Setup() *PublicController {
+
+	debug := os.Getenv("DEBUG")
+	if debug != "" && debug != "0" {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		fmt.Println("Debug log enabled")
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	pCtrl := new(PublicController)
-	cfg := new(models.DatabaseConfig)
 
-	err := env.Parse(&pCtrl.AccessTokenCfg)
-	if err != nil {
-		log.Fatal("Error while parsing access token config from enviroment: ", err.Error())
-	}
-
-	err = env.Parse(&pCtrl.RefreshTokenCfg)
-	if err != nil {
-		log.Fatal("Error while parsing refresh token config from enviroment: ", err.Error())
-	}
-
-	err = env.Parse(cfg)
+	configFile, err := os.ReadFile("config.toml")
 
 	if err != nil {
-		log.Fatal("Error while parsing database config from enviroment: ", err.Error())
+		log.Fatal("Config file not found: ", err.Error())
 	}
 
-	db, err := sql.Open(cfg.Dbdriver, cfg.GetUrl())
+	tomlConfig := new(models.TomlConfig)
+
+	err = toml.Unmarshal(configFile, tomlConfig)
+
+	pCtrl.AccessTokenCfg = tomlConfig.TokensCfg.AccessTokenCfg
+	pCtrl.RefreshTokenCfg = tomlConfig.TokensCfg.RefreshTokenCfg
+
+	if err != nil {
+		log.Fatal("Error parsing config file: ", err.Error())
+	}
+
+	db, err := sql.Open(tomlConfig.Database.Driver, tomlConfig.Database.GetUrl())
 
 	if err != nil {
 		log.Fatal("Error connecting to the database: ", err.Error())

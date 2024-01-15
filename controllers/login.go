@@ -57,7 +57,7 @@ func (p *PublicController) Login(c *gin.Context) {
 		log.Println("Error deleting old refresh token from database: ", err.Error())
 	}
 
-	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.Lifespan))
+	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.LifespanHour))
 	refreshClaims := token.NewRefresh(input.DeviceId, udb.Id, expiresAt)
 	refreshToken, err := refreshClaims.TokenString(p.RefreshTokenCfg.Secret)
 
@@ -67,7 +67,7 @@ func (p *PublicController) Login(c *gin.Context) {
 		return
 	}
 
-	expiresAt = time.Now().Add(time.Minute * time.Duration(p.AccessTokenCfg.Lifespan))
+	expiresAt = time.Now().Add(time.Minute * time.Duration(p.AccessTokenCfg.LifespanMinute))
 	accessClaims := token.NewAccess(udb.Id, expiresAt)
 	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 
