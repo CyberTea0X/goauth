@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"os"
 
 	"github.com/CyberTea0X/goauth/src/backend/controllers"
 
@@ -12,13 +10,6 @@ import (
 )
 
 func main() {
-	debug := os.Getenv("DEBUG")
-	if debug != "" && debug != "0" {
-		log.SetFlags(log.LstdFlags | log.Lshortfile)
-		fmt.Println("Debug log enabled")
-	} else {
-		gin.SetMode(gin.ReleaseMode)
-	}
 
 	c := controllers.Setup()
 
