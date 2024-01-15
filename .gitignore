@@ -11,6 +11,9 @@
 # dotenv
 .env
 
+# config
+config.toml
+
 # Test binary, built with `go test -c`
 *.test
 
