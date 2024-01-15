@@ -8,8 +8,8 @@
 *.so
 *.dylib
 
-# dotenv files
-*.env
+# dotenv
+.env
 
 # Test binary, built with `go test -c`
 *.test
