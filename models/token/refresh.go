@@ -20,12 +20,13 @@ const refresh_table_ddl = "" +
 
 type RefreshToken struct {
 	jwt.RegisteredClaims
+	TokenID  int64  `json:"token_id"`
 	DeviceID uint   `json:"device_id"`
 	UserID   uint   `json:"user_id"`
 	Role     string `json:"role"`
 }
 
-func NewRefresh(deviceId uint, userId uint, role string, expiresAt time.Time) *RefreshToken {
+func NewRefreshNoID(deviceId uint, userId uint, role string, expiresAt time.Time) *RefreshToken {
 	t := new(RefreshToken)
 	t.DeviceID = deviceId
 	t.UserID = userId
@@ -55,26 +56,57 @@ func (c *RefreshToken) TokenString(secret string) (string, error) {
 	return token_string, err
 }
 
-func (t *RefreshToken) InsertToDb(db *sql.DB) (*RefreshToken, error) {
-	query := "INSERT INTO refresh_tokens (device_id, expires_at, user_id) VALUES (?,?,?)"
-	_, err := db.Exec(query, t.DeviceID, t.ExpiresAt.Unix(), t.UserID)
-	return t, err
+// Inserts row that identifies token into the database (not token string)
+func (t *RefreshToken) InsertToDb(db *sql.DB) (int64, error) {
+	const query = "INSERT INTO refresh_tokens (device_id, expires_at, user_id) VALUES (?,?,?)"
+	res, err := db.Exec(query, t.DeviceID, t.ExpiresAt.Unix(), t.UserID)
+	if err != nil {
+		return 0, err
+	}
+	lastInsertId, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return lastInsertId, err
 }
 
 func (t *RefreshToken) Exists(db *sql.DB) (bool, error) {
 	var exists bool
-	query := "SELECT EXISTS(SELECT * FROM refresh_tokens WHERE user_id=? AND device_id=? AND expires_at=?)"
-	res, err := db.Query(query, t.UserID, t.DeviceID, t.ExpiresAt.Unix())
-	res.Next()
+	const query = "" +
+		"SELECT EXISTS(SELECT * FROM refresh_tokens " +
+		"WHERE id=? AND user_id=? AND device_id=? AND expires_at=?)"
+	res, err := db.Query(query, t.TokenID, t.UserID, t.DeviceID, t.ExpiresAt.Unix())
+	if err != nil {
+		return false, err
+	}
+	if !res.Next() {
+		return false, nil
+	}
 	res.Scan(&exists)
 	return exists, err
 }
 
-// Deletes old refresh token from the database (not exactly token, but it's identifier)
-func DeleteOldToken(db *sql.DB, user_id uint, device_id uint) error {
-	query := "DELETE FROM refresh_tokens WHERE user_id =? AND device_id =?"
-	_, err := db.Exec(query, user_id, device_id)
-	return err
+func (t *RefreshToken) FindID(db *sql.DB) (int64, bool, error) {
+	const query = "" +
+		"SELECT id FROM refresh_tokens " +
+		"WHERE user_id=? AND device_id=?"
+	res, err := db.Query(query, t.UserID, t.DeviceID)
+	if err != nil {
+		return 0, false, err
+	}
+	if !res.Next() {
+		return 0, false, nil
+	}
+	var id int64
+	res.Scan(&id)
+	return id, true, nil
+}
+
+// Updates expiredAt field of token in the database
+func (t *RefreshToken) Update(db *sql.DB, expiresAt uint64) (*RefreshToken, error) {
+	const q = "UPDATE refresh_tokens SET expires_at=? WHERE id=? AND user_id =? AND device_id =?"
+	_, err := db.Exec(q, expiresAt, t.TokenID, t.UserID, t.DeviceID)
+	return t, err
 }
 
 // Creates refresh token table if it doesn't already exist

@@ -35,7 +35,7 @@ func (u *User) FromRow(rows *sql.Rows) (*User, error) {
 		return u, errors.New(fmt.Sprintf("Can't scan user from row"))
 	}
 
-	err := rows.Scan(&u.Id, &u.Username, &u.Email, &u.Password, &u.Role)
+	err := rows.Scan(&u.Id, &u.Username, &u.Password, &u.Email, &u.Role)
 	if err != nil {
 		return u, errors.New(fmt.Sprintf("Can't scan user from row: %s", err.Error()))
 	}

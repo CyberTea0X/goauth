@@ -53,14 +53,41 @@ func (p *PublicController) Login(c *gin.Context) {
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid password"})
 		return
-	}
-
-	if err := token.DeleteOldToken(db, udb.Id, input.DeviceId); err != nil {
-		log.Println("Error deleting old refresh token from database: ", err.Error())
+	} else if err != nil {
+		log.Println("Error verifying user password: ", err)
+		c.Status(http.StatusInternalServerError)
+		return
 	}
 
 	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.LifespanHour))
-	refreshClaims := token.NewRefresh(input.DeviceId, udb.Id, udb.Role, expiresAt)
+	refreshClaims := token.NewRefreshNoID(input.DeviceId, udb.Id, udb.Role, expiresAt)
+
+	refreshID, exists, err := refreshClaims.FindID(p.DB)
+	if err != nil {
+		log.Println("Error while trying to find refresh token ID: ", err.Error())
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	// Insert or update token identifier
+	if exists {
+		refreshClaims.TokenID = refreshID
+		_, err = refreshClaims.Update(p.DB, uint64(refreshClaims.ExpiresAt.Unix()))
+		if err != nil {
+			log.Println("Error updating refresh token")
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+	} else {
+		id, err := refreshClaims.InsertToDb(db)
+		if err != nil {
+			log.Println("Error inserting refresh token to the database: ", err.Error())
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		refreshClaims.TokenID = id
+	}
+
 	refreshToken, err := refreshClaims.TokenString(p.RefreshTokenCfg.Secret)
 
 	if err != nil {
@@ -75,12 +102,6 @@ func (p *PublicController) Login(c *gin.Context) {
 
 	if err != nil {
 		log.Println("Error generating access token: ", err.Error())
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-
-	if _, err := refreshClaims.InsertToDb(db); err != nil {
-		log.Println("Error inserting refresh token to the database: ", err.Error())
 		c.Status(http.StatusInternalServerError)
 		return
 	}

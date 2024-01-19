@@ -7,6 +7,7 @@ import (
 
 	"github.com/CyberTea0X/goauth/src/backend/models/token"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // Structure describing the json fields that should be in the refresh request
@@ -22,16 +23,23 @@ func (p *PublicController) Refresh(c *gin.Context) {
 		return
 	}
 
-	old_token, err := token.RefreshFromString(input.RefreshToken, p.RefreshTokenCfg.Secret)
+	refreshClaims, err := token.RefreshFromString(input.RefreshToken, p.RefreshTokenCfg.Secret)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	exists, err := old_token.Exists(p.DB)
+	if refreshClaims.ExpiresAt.Time.Before(time.Now()) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "token expired"})
+		return
+	}
+
+	exists, err := refreshClaims.Exists(p.DB)
 	if err != nil {
 		log.Println("Error while checking if refresh token exists: ", err.Error())
+		c.Status(http.StatusInternalServerError)
+		return
 	}
 
 	if exists == false {
@@ -39,29 +47,28 @@ func (p *PublicController) Refresh(c *gin.Context) {
 		return
 	}
 
-	err = token.DeleteOldToken(p.DB, old_token.UserID, old_token.DeviceID)
+	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.LifespanHour))
+	refreshClaims.ExpiresAt = jwt.NewNumericDate(expiresAt)
+	expiresUnix := refreshClaims.ExpiresAt.Unix()
+
+	_, err = refreshClaims.Update(p.DB, uint64(expiresUnix))
 
 	if err != nil {
-		log.Println("Error deleting old tokens: ", err.Error())
-	}
-
-	if old_token.ExpiresAt.Time.Before(time.Now()) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "token expired"})
+		log.Println("Error updating refresh token identifier in the database: ", err.Error())
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.LifespanHour))
-	refreshClaims := token.NewRefresh(old_token.DeviceID, old_token.UserID, old_token.Role, expiresAt)
 	refreshToken, err := refreshClaims.TokenString(p.RefreshTokenCfg.Secret)
 
 	if err != nil {
-		log.Println("Error generating refresh token from old token: ", err.Error())
+		log.Println("Error generating refresh token from old refresh token: ", err.Error())
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
 	expiresAt = time.Now().Add(time.Minute * time.Duration(p.AccessTokenCfg.LifespanMinute))
-	accessClaims := token.NewAccess(old_token.UserID, old_token.Role, expiresAt)
+	accessClaims := token.NewAccess(refreshClaims.UserID, refreshClaims.Role, expiresAt)
 	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 
 	if err != nil {
@@ -70,16 +77,10 @@ func (p *PublicController) Refresh(c *gin.Context) {
 		return
 	}
 
-	if _, err := refreshClaims.InsertToDb(p.DB); err != nil {
-		log.Println("Error inserting refresh token identifier to the database: ", err.Error())
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"accessToken":  accessToken,
 		"refreshToken": refreshToken,
-		"expires_at":   expiresAt.Unix(),
+		"expires_at":   expiresUnix,
 	})
 
 }
