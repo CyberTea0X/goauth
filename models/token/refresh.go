@@ -20,15 +20,17 @@ const refresh_table_ddl = "" +
 
 type RefreshToken struct {
 	jwt.RegisteredClaims
-	DeviceID uint `json:"device_id"`
-	UserID   uint `json:"user_id"`
+	DeviceID uint   `json:"device_id"`
+	UserID   uint   `json:"user_id"`
+	Role     string `json:"role"`
 }
 
-func NewRefresh(deviceId uint, userId uint, expiresAt time.Time) *RefreshToken {
+func NewRefresh(deviceId uint, userId uint, role string, expiresAt time.Time) *RefreshToken {
 	t := new(RefreshToken)
 	t.DeviceID = deviceId
 	t.UserID = userId
 	t.ExpiresAt = jwt.NewNumericDate(expiresAt)
+	t.Role = role
 	return t
 }
 

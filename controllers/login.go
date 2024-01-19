@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -42,6 +43,7 @@ func (p *PublicController) Login(c *gin.Context) {
 	}
 
 	if err != nil {
+		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "user not found"})
 		return
 	}
@@ -58,7 +60,7 @@ func (p *PublicController) Login(c *gin.Context) {
 	}
 
 	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.LifespanHour))
-	refreshClaims := token.NewRefresh(input.DeviceId, udb.Id, expiresAt)
+	refreshClaims := token.NewRefresh(input.DeviceId, udb.Id, udb.Role, expiresAt)
 	refreshToken, err := refreshClaims.TokenString(p.RefreshTokenCfg.Secret)
 
 	if err != nil {
@@ -68,7 +70,7 @@ func (p *PublicController) Login(c *gin.Context) {
 	}
 
 	expiresAt = time.Now().Add(time.Minute * time.Duration(p.AccessTokenCfg.LifespanMinute))
-	accessClaims := token.NewAccess(udb.Id, expiresAt)
+	accessClaims := token.NewAccess(udb.Id, udb.Role, expiresAt)
 	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 
 	if err != nil {
@@ -87,6 +89,7 @@ func (p *PublicController) Login(c *gin.Context) {
 		"accessToken":  accessToken,
 		"refreshToken": refreshToken,
 		"expires_at":   expiresAt.Unix(),
+		"role":         udb.Role,
 	})
 
 }

@@ -13,7 +13,7 @@ type User struct {
 	Username string `json:"username"` // not null
 	Password string `json:"password"` // not null
 	Email    string `json:"email"`    // not null unique
-	//RefreshTokens []RefreshToken `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Role     string `json:"role"`     // not null
 }
 
 func VerifyPassword(password string, hashedPassword string) error {
@@ -35,7 +35,7 @@ func (u *User) FromRow(rows *sql.Rows) (*User, error) {
 		return u, errors.New(fmt.Sprintf("Can't scan user from row"))
 	}
 
-	err := rows.Scan(&u.Id, &u.Username, &u.Email, &u.Password)
+	err := rows.Scan(&u.Id, &u.Username, &u.Email, &u.Password, &u.Role)
 	if err != nil {
 		return u, errors.New(fmt.Sprintf("Can't scan user from row: %s", err.Error()))
 	}

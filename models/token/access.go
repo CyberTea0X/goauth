@@ -10,12 +10,14 @@ import (
 type AccessToken struct {
 	jwt.RegisteredClaims
 	UserID uint
+	Role   string
 }
 
-func NewAccess(userId uint, expiresAt time.Time) *AccessToken {
+func NewAccess(userId uint, role string, expiresAt time.Time) *AccessToken {
 	t := new(AccessToken)
 	t.UserID = userId
 	t.ExpiresAt = jwt.NewNumericDate(expiresAt)
+	t.Role = role
 	return t
 }
 
