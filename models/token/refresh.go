@@ -22,11 +22,11 @@ type RefreshToken struct {
 	jwt.RegisteredClaims
 	TokenID  int64  `json:"token_id"`
 	DeviceID uint   `json:"device_id"`
-	UserID   uint   `json:"user_id"`
+	UserID   int64  `json:"user_id"`
 	Role     string `json:"role"`
 }
 
-func NewRefreshNoID(deviceId uint, userId uint, role string, expiresAt time.Time) *RefreshToken {
+func NewRefreshNoID(deviceId uint, userId int64, role string, expiresAt time.Time) *RefreshToken {
 	t := new(RefreshToken)
 	t.DeviceID = deviceId
 	t.UserID = userId

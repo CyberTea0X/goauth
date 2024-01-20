@@ -55,7 +55,12 @@ func Setup() *PublicController {
 	if err != nil {
 		log.Fatal("Error connecting to the database: ", err.Error())
 	}
-	token.CreateRefreshTable(db)
+	if err = token.CreateRefreshTable(db); err != nil {
+		log.Fatal("Failed to create refresh token table: ", err.Error())
+	}
+	if err = models.CreateGuestTable(db); err != nil {
+		log.Fatal("Failed to create guests table: ", err.Error())
+	}
 
 	pCtrl.DB = db
 	return pCtrl

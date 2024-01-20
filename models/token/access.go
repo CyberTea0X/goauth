@@ -9,11 +9,11 @@ import (
 
 type AccessToken struct {
 	jwt.RegisteredClaims
-	UserId uint   `json:"user_id"`
+	UserId int64  `json:"user_id"`
 	Role   string `json:"role"`
 }
 
-func NewAccess(userId uint, role string, expiresAt time.Time) *AccessToken {
+func NewAccess(userId int64, role string, expiresAt time.Time) *AccessToken {
 	t := new(AccessToken)
 	t.UserId = userId
 	t.ExpiresAt = jwt.NewNumericDate(expiresAt)

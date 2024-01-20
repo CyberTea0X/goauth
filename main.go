@@ -21,6 +21,7 @@ func main() {
 	public.GET("login", c.Login)
 	public.GET("refresh", c.Refresh)
 	public.GET("auth", c.Auth)
+	public.GET("guest", c.Guest)
 
 	fmt.Println("Auth server starting on port", port)
 
