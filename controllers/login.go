@@ -34,12 +34,11 @@ func (p *PublicController) Login(c *gin.Context) {
 
 	var err error
 	var udb = &models.User{}
-	var db = p.DB
 
 	if input.Username != "" {
-		udb, err = models.GetUserByUsername(db, input.Username)
+		udb, err = models.GetUserByUsername(p.DB, input.Username)
 	} else {
-		udb, err = models.GetUserByEmail(db, input.Email)
+		udb, err = models.GetUserByEmail(p.DB, input.Email)
 	}
 
 	if err != nil {
@@ -60,33 +59,16 @@ func (p *PublicController) Login(c *gin.Context) {
 	}
 
 	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.LifespanHour))
-	refreshClaims := token.NewRefreshNoID(input.DeviceId, udb.Id, udb.Role, expiresAt)
+	refreshClaims := token.NewRefresh(-1, input.DeviceId, udb.Id, udb.Role, expiresAt)
 
-	refreshID, exists, err := refreshClaims.FindID(p.DB)
+	refreshId, err := refreshClaims.InsertOrUpdate(p.DB)
+
 	if err != nil {
-		log.Println("Error while trying to find refresh token ID: ", err.Error())
+		log.Println("Error inserting or updating on duplicate key refresh token in the db: ", err)
 		c.Status(http.StatusInternalServerError)
 		return
 	}
-
-	// Insert or update token identifier
-	if exists {
-		refreshClaims.TokenID = refreshID
-		_, err = refreshClaims.Update(p.DB, uint64(refreshClaims.ExpiresAt.Unix()))
-		if err != nil {
-			log.Println("Error updating refresh token")
-			c.Status(http.StatusInternalServerError)
-			return
-		}
-	} else {
-		id, err := refreshClaims.InsertToDb(db)
-		if err != nil {
-			log.Println("Error inserting refresh token to the database: ", err.Error())
-			c.Status(http.StatusInternalServerError)
-			return
-		}
-		refreshClaims.TokenID = id
-	}
+	refreshClaims.TokenID = refreshId
 
 	refreshToken, err := refreshClaims.TokenString(p.RefreshTokenCfg.Secret)
 

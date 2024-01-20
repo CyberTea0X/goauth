@@ -26,13 +26,14 @@ type RefreshToken struct {
 	Role     string `json:"role"`
 }
 
-func NewRefreshNoID(deviceId uint, userId int64, role string, expiresAt time.Time) *RefreshToken {
+func NewRefresh(tokenId int64, deviceId uint, userId int64, role string, expiresAt time.Time) *RefreshToken {
 	t := new(RefreshToken)
+    t.TokenID = tokenId
 	t.DeviceID = deviceId
 	t.UserID = userId
 	t.ExpiresAt = jwt.NewNumericDate(expiresAt)
 	t.Role = role
-	return t
+    return t
 }
 
 // Parses token from token string
@@ -113,4 +114,24 @@ func (t *RefreshToken) Update(db *sql.DB, expiresAt uint64) (*RefreshToken, erro
 func CreateRefreshTable(db *sql.DB) error {
 	_, err := db.Exec(refresh_table_ddl)
 	return err
+}
+
+func (t *RefreshToken) InsertOrUpdate(db *sql.DB) (int64, error) {
+	id, exists, err := t.FindID(db)
+	if err != nil {
+		return 0, errors.Join(errors.New("error trying to find refresh token ID"), err)
+	}
+	if !exists {
+        if id, err = t.InsertToDb(db); err != nil {
+            return 0, errors.Join(errors.New("error trying to insert refresh token to DB"), err)
+        }
+        return id, nil
+	}
+    old_id := t.TokenID
+    t.TokenID = id
+    if _, err = t.Update(db, uint64(t.ExpiresAt.Unix())); err != nil {
+        return 0, errors.Join(errors.New("error trying to update refresh token in the DB"), err)
+    }
+    t.TokenID = old_id
+	return id, nil
 }
