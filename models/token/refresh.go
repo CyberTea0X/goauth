@@ -14,6 +14,7 @@ const refresh_table_ddl = "" +
 	"`device_id` int(10) unsigned NOT NULL," +
 	"`user_id` int(10) unsigned NOT NULL," +
 	"`expires_at` int(10) unsigned NOT NULL," +
+    "`role` varchar(100) NOT NULL," +
 	"PRIMARY KEY (`id`)," +
 	"UNIQUE KEY `refresh_tokens_device_id_IDX` (`device_id`,`user_id`,`expires_at`) USING BTREE" +
 	") ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;"
@@ -59,8 +60,8 @@ func (c *RefreshToken) TokenString(secret string) (string, error) {
 
 // Inserts row that identifies token into the database (not token string)
 func (t *RefreshToken) InsertToDb(db *sql.DB) (int64, error) {
-	const query = "INSERT INTO refresh_tokens (device_id, expires_at, user_id) VALUES (?,?,?)"
-	res, err := db.Exec(query, t.DeviceID, t.ExpiresAt.Unix(), t.UserID)
+	const query = "INSERT INTO refresh_tokens (device_id, expires_at, user_id, role) VALUES (?,?,?,?)"
+	res, err := db.Exec(query, t.DeviceID, t.ExpiresAt.Unix(), t.UserID, t.Role)
 	if err != nil {
 		return 0, err
 	}
@@ -75,8 +76,8 @@ func (t *RefreshToken) Exists(db *sql.DB) (bool, error) {
 	var exists bool
 	const query = "" +
 		"SELECT EXISTS(SELECT * FROM refresh_tokens " +
-		"WHERE id=? AND user_id=? AND device_id=? AND expires_at=?)"
-	res, err := db.Query(query, t.TokenID, t.UserID, t.DeviceID, t.ExpiresAt.Unix())
+		"WHERE id=? AND user_id=? AND device_id=? AND expires_at=? AND role=?)"
+	res, err := db.Query(query, t.TokenID, t.UserID, t.DeviceID, t.ExpiresAt.Unix(), t.Role)
 	if err != nil {
 		return false, err
 	}
@@ -90,8 +91,8 @@ func (t *RefreshToken) Exists(db *sql.DB) (bool, error) {
 func (t *RefreshToken) FindID(db *sql.DB) (int64, bool, error) {
 	const query = "" +
 		"SELECT id FROM refresh_tokens " +
-		"WHERE user_id=? AND device_id=?"
-	res, err := db.Query(query, t.UserID, t.DeviceID)
+		"WHERE user_id=? AND device_id=? AND role=?"
+	res, err := db.Query(query, t.UserID, t.DeviceID, t.Role)
 	if err != nil {
 		return 0, false, err
 	}
@@ -105,8 +106,8 @@ func (t *RefreshToken) FindID(db *sql.DB) (int64, bool, error) {
 
 // Updates expiredAt field of token in the database
 func (t *RefreshToken) Update(db *sql.DB, expiresAt uint64) (*RefreshToken, error) {
-	const q = "UPDATE refresh_tokens SET expires_at=? WHERE id=? AND user_id =? AND device_id =?"
-	_, err := db.Exec(q, expiresAt, t.TokenID, t.UserID, t.DeviceID)
+	const q = "UPDATE refresh_tokens SET expires_at=? WHERE id=? AND user_id =? AND device_id =? AND role=?"
+	_, err := db.Exec(q, expiresAt, t.TokenID, t.UserID, t.DeviceID, t.Role)
 	return t, err
 }
 
