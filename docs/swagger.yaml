@@ -1,0 +1,27 @@
+basePath: /api
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:8080
+info:
+  contact: {}
+  description: Simple authentication service
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Golang Authentication microservice
+  version: "0.01"
+paths:
+  /health_check:
+    get:
+      description: to healthcheck
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: checks if server is running
+      tags:
+      - healthcheck
+swagger: "2.0"
