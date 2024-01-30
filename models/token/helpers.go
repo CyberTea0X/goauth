@@ -19,7 +19,7 @@ func ParseWithClaims(token string, claims jwt.Claims, secret string) (*jwt.Token
 		return []byte(secret), nil
 	})
 	if !jwt.Valid {
-		return nil, errors.New("Invalid token")
+		return nil, result
 	}
 	return jwt, result
 }
@@ -34,5 +34,8 @@ func ExtractToken(c *gin.Context) (string, error) {
 	if len(strings.Split(bearerToken, " ")) == 2 {
 		return strings.Split(bearerToken, " ")[1], nil
 	}
-	return "", errors.New("Token not found in request or request headers")
+	if bearerToken == "" {
+		return "", errors.New("Token not found in request or request headers")
+	}
+	return bearerToken, nil
 }

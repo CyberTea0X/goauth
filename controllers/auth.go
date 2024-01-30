@@ -1,28 +1,30 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
-	"time"
 
 	"github.com/CyberTea0X/goauth/src/backend/models/token"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func (p *PublicController) Auth(c *gin.Context) {
 	accessToken, err := token.ExtractToken(c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "no token specified"})
+		c.JSON(http.StatusUnauthorized, ErrToMap(ErrNoTokenSpecified{}))
 		return
 	}
-	accessClaims, err := token.AccessFromString(accessToken, p.AccessTokenCfg.Secret)
+
+	_, err = token.AccessFromString(accessToken, p.AccessTokenCfg.Secret)
+
+	if errors.Is(err, jwt.ErrTokenExpired) {
+		c.JSON(http.StatusUnauthorized, ErrToMap(ErrTokenExpired{}))
+		return
+	}
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid access token"})
-		return
-	}
-
-	if accessClaims.ExpiresAt.Time.Before(time.Now()) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "token expired"})
+		c.JSON(http.StatusUnauthorized, ErrToMap(ErrInvalidAccessToken{}))
 		return
 	}
 

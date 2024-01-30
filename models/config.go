@@ -1,18 +1,12 @@
 package models
 
 import (
+	"errors"
 	"fmt"
+	"os"
+
+	"github.com/pelletier/go-toml/v2"
 )
-
-type TomlConfig struct {
-	Database  DatabaseConfig
-	TokensCfg TokensCfg `toml:"tokens"`
-}
-
-type TokensCfg struct {
-	AccessTokenCfg  AccessTokenCfg  `toml:"access"`
-	RefreshTokenCfg RefreshTokenCfg `toml:"refresh"`
-}
 
 type AccessTokenCfg struct {
 	Secret         string
@@ -22,6 +16,11 @@ type AccessTokenCfg struct {
 type RefreshTokenCfg struct {
 	Secret       string
 	LifespanHour uint `toml:"lifespan_hour"`
+}
+
+type TokensCfg struct {
+	Access  AccessTokenCfg
+	Refresh RefreshTokenCfg
 }
 
 type DatabaseConfig struct {
@@ -35,4 +34,27 @@ type DatabaseConfig struct {
 
 func (c *DatabaseConfig) GetUrl() string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", c.User, c.Password, c.Host, c.Port, c.Name)
+}
+
+type TomlConfig struct {
+	Database DatabaseConfig
+	Tokens   TokensCfg
+}
+
+func ParseConfig(filename string) (*TomlConfig, error) {
+	configFile, err := os.ReadFile(filename)
+
+	if err != nil {
+		return nil, err
+	}
+
+	tomlConfig := new(TomlConfig)
+
+	err = toml.Unmarshal(configFile, tomlConfig)
+
+	if err != nil {
+		return nil, errors.Join(errors.New("Failed to parse config file"), err)
+	}
+
+	return tomlConfig, nil
 }

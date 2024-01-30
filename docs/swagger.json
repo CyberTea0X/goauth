@@ -14,20 +14,57 @@
     "host": "localhost:8080",
     "basePath": "/api",
     "paths": {
-        "/health_check": {
+        "/guest": {
             "get": {
-                "description": "to healthcheck",
-                "tags": [
-                    "healthcheck"
+                "description": "authorizes user as guest",
+                "consumes": [
+                    "application/json"
                 ],
-                "summary": "checks if server is running",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "guest authorization",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/controllers.GuestOutput"
                         }
                     }
+                }
+            }
+        },
+        "/health_check": {
+            "get": {
+                "description": "do healthcheck",
+                "summary": "healthcheck",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "controllers.GuestOutput": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string",
+                    "example": "token"
+                },
+                "expires_at": {
+                    "type": "integer",
+                    "example": 244534234
+                },
+                "refresh_token": {
+                    "type": "string",
+                    "example": "token"
+                },
+                "role": {
+                    "type": "string",
+                    "example": "root"
                 }
             }
         }

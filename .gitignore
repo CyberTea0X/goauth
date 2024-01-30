@@ -11,6 +11,7 @@
 # dotenv
 .env
 config.toml
+config_test.toml
 
 # config
 config.toml

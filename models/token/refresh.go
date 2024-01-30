@@ -8,17 +8,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const refresh_table_ddl = "" +
-	"CREATE TABLE IF NOT EXISTS `refresh_tokens` (" +
-	"`id` int(10) unsigned NOT NULL AUTO_INCREMENT," +
-	"`device_id` int(10) unsigned NOT NULL," +
-	"`user_id` int(10) unsigned NOT NULL," +
-	"`expires_at` int(10) unsigned NOT NULL," +
-    "`role` varchar(100) NOT NULL," +
-	"PRIMARY KEY (`id`)," +
-	"UNIQUE KEY `refresh_tokens_device_id_IDX` (`device_id`,`user_id`,`expires_at`) USING BTREE" +
-	") ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;"
-
 type RefreshToken struct {
 	jwt.RegisteredClaims
 	TokenID  int64  `json:"token_id"`
@@ -29,12 +18,12 @@ type RefreshToken struct {
 
 func NewRefresh(tokenId int64, deviceId uint, userId int64, role string, expiresAt time.Time) *RefreshToken {
 	t := new(RefreshToken)
-    t.TokenID = tokenId
+	t.TokenID = tokenId
 	t.DeviceID = deviceId
 	t.UserID = userId
 	t.ExpiresAt = jwt.NewNumericDate(expiresAt)
 	t.Role = role
-    return t
+	return t
 }
 
 // Parses token from token string
@@ -111,28 +100,22 @@ func (t *RefreshToken) Update(db *sql.DB, expiresAt uint64) (*RefreshToken, erro
 	return t, err
 }
 
-// Creates refresh token table if it doesn't already exist
-func CreateRefreshTable(db *sql.DB) error {
-	_, err := db.Exec(refresh_table_ddl)
-	return err
-}
-
 func (t *RefreshToken) InsertOrUpdate(db *sql.DB) (int64, error) {
 	id, exists, err := t.FindID(db)
 	if err != nil {
 		return 0, errors.Join(errors.New("error trying to find refresh token ID"), err)
 	}
 	if !exists {
-        if id, err = t.InsertToDb(db); err != nil {
-            return 0, errors.Join(errors.New("error trying to insert refresh token to DB"), err)
-        }
-        return id, nil
+		if id, err = t.InsertToDb(db); err != nil {
+			return 0, errors.Join(errors.New("error trying to insert refresh token to DB"), err)
+		}
+		return id, nil
 	}
-    old_id := t.TokenID
-    t.TokenID = id
-    if _, err = t.Update(db, uint64(t.ExpiresAt.Unix())); err != nil {
-        return 0, errors.Join(errors.New("error trying to update refresh token in the DB"), err)
-    }
-    t.TokenID = old_id
+	old_id := t.TokenID
+	t.TokenID = id
+	if _, err = t.Update(db, uint64(t.ExpiresAt.Unix())); err != nil {
+		return 0, errors.Join(errors.New("error trying to update refresh token in the DB"), err)
+	}
+	t.TokenID = old_id
 	return id, nil
 }

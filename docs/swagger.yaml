@@ -1,4 +1,20 @@
 basePath: /api
+definitions:
+  controllers.GuestOutput:
+    properties:
+      access_token:
+        example: token
+        type: string
+      expires_at:
+        example: 244534234
+        type: integer
+      refresh_token:
+        example: token
+        type: string
+      role:
+        example: root
+        type: string
+    type: object
 externalDocs:
   description: OpenAPI
   url: https://swagger.io/resources/open-api/
@@ -13,15 +29,24 @@ info:
   title: Golang Authentication microservice
   version: "0.01"
 paths:
-  /health_check:
+  /guest:
     get:
-      description: to healthcheck
+      consumes:
+      - application/json
+      description: authorizes user as guest
+      produces:
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: string
-      summary: checks if server is running
-      tags:
-      - healthcheck
+            $ref: '#/definitions/controllers.GuestOutput'
+      summary: guest authorization
+  /health_check:
+    get:
+      description: do healthcheck
+      responses:
+        "200":
+          description: OK
+      summary: healthcheck
 swagger: "2.0"

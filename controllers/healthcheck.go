@@ -5,15 +5,12 @@ import (
 	"net/http"
 )
 
-// @BasePath /api
-
-// HealthCheck godoc
-// @Summary checks if server is running
-// @Schemes
-// @Description to healthcheck
-// @Tags healthcheck
-// @Success 200 {string} Server is alive!
-// @Router /health_check [get]
+// HealthCheck checks if the server is running
+//
+//	@Summary		healthcheck
+//	@Description	do healthcheck
+//	@Success	200
+//	@Router		/health_check [get]
 func (p *PublicController) HealthCheck(c *gin.Context) {
-	c.String(http.StatusOK, "Server is alive!")
+	c.Status(http.StatusOK)
 }
