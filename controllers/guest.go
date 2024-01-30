@@ -42,16 +42,13 @@ func (p *PublicController) Guest(c *gin.Context) {
 		return
 	}
 
-	guest := new(models.Guest)
-	guest.FullName = input.FullName
-	id, err := guest.InsertToDb(p.DB)
+	guest, err := models.RegisterGuest(input.FullName, p.GuestServiceURL, p.Client)
+
 	if err != nil {
-		log.Println("Error inserting guest into db", err)
+		log.Println("Error registering new guest", err)
 		c.Status(http.StatusInternalServerError)
 		return
 	}
-
-	guest.Id = id
 
 	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.LifespanHour))
 	refreshClaims := token.NewRefresh(-1, input.DeviceId, guest.Id, ROLE, expiresAt)

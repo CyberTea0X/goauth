@@ -1,21 +1,26 @@
 package models
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
 )
 
 type Guest struct {
-	Id       int64
-	FullName string
+	Id       int64  `json:"id,omitempty"`
+	FullName string `json:"full_name,omitempty"`
 }
 
 // Calls rows.Next() and Scans the row into the guest struct
 func (g *Guest) FromRow(rows *sql.Rows) (*Guest, error) {
 	exists := rows.Next()
 	if !exists {
-		return g, errors.New(fmt.Sprintf("Can't scan user from row"))
+		return g, errors.New(fmt.Sprintf("Can't scan guest from row"))
 	}
 
 	err := rows.Scan(&g.Id, &g.FullName)
@@ -26,16 +31,26 @@ func (g *Guest) FromRow(rows *sql.Rows) (*Guest, error) {
 	return g, nil
 }
 
-// Inserts row that identifies token into the database (not token string)
-func (g *Guest) InsertToDb(db *sql.DB) (int64, error) {
-	const query = "INSERT INTO guests (full_name) VALUES (?)"
-	res, err := db.Exec(query, &g.FullName)
+func RegisterGuest(fullname string, adress url.URL, client *http.Client) (*Guest, error) {
+	//client := &http.Client{
+	guest := new(Guest)
+	guest.FullName = fullname
+	requestBody, err := json.Marshal(guest)
 	if err != nil {
-		return 0, err
+		return nil, errors.Join(errors.New("Error marshalling guest struct to json"), err)
 	}
-	lastInsertId, err := res.LastInsertId()
+	r, err := client.Post(adress.String(), "application/json", bytes.NewBuffer(requestBody))
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return lastInsertId, err
+	defer r.Body.Close()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Join(errors.New("Error reading body of a new guest request response"), err)
+	}
+	if err := json.Unmarshal(body, guest); err != nil {
+		return nil, errors.Join(errors.New("Error unmarshalling guest from request"), err)
+	}
+
+	return guest, nil
 }

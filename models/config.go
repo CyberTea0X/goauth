@@ -36,9 +36,27 @@ func (c *DatabaseConfig) GetUrl() string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", c.User, c.Password, c.Host, c.Port, c.Name)
 }
 
+type GuestService struct {
+	Host string
+	Port string
+	Path string
+}
+
+type LoginService struct {
+	Host string
+	Port string
+	Path string
+}
+
+type ExternalServicesConfig struct {
+	Guest GuestService
+	Login LoginService
+}
+
 type TomlConfig struct {
 	Database DatabaseConfig
 	Tokens   TokensCfg
+	Services ExternalServicesConfig
 }
 
 func ParseConfig(filename string) (*TomlConfig, error) {

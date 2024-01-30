@@ -18,7 +18,7 @@ func SetupTestRouter() (*gin.Engine, *PublicController, error) {
 		return nil, nil, err
 	}
 
-	controller := SetupController(config.Tokens, db)
+	controller := SetupController(config.Tokens, config.Services, db)
 
 	return SetupRouter(controller), controller, nil
 }

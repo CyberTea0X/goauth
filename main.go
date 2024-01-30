@@ -46,7 +46,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	controller := controllers.SetupController(config.Tokens, db)
+	controller := controllers.SetupController(config.Tokens, config.Services, db)
 
 	port := "8080"
 	fmt.Println("Auth server starting on port", port)

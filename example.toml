@@ -15,3 +15,15 @@ secret = "secret1"
 [tokens.refresh]
 lifespan_hour = 8790
 secret = "secret2"
+
+# External services that goauth uses
+[services]
+[guest]
+host = "127.0.0.1"
+port = "8081"
+path = "/api/guest"
+
+[login]
+host = "127.0.0.1"
+port = "8081"
+path = "/api/login"
