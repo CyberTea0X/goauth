@@ -45,7 +45,7 @@ func (p *PublicController) Refresh(c *gin.Context) {
 	}
 
 	if exists == false {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "token does not exist"})
+		c.JSON(http.StatusBadRequest, models.ErrToMap(models.ErrTokenNotExists))
 		return
 	}
 
