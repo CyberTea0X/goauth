@@ -48,9 +48,8 @@ func (p *PublicController) Guest(c *gin.Context) {
 	if err != nil {
 		targetErr := new(models.ExternalServiceError)
 		if errors.As(err, &targetErr) {
-			c.JSON(targetErr.Status, targetErr.Msg)
+			c.JSON(targetErr.Status, models.ErrToMap(targetErr))
 		} else {
-			log.Println(err.Error())
 			c.Status(http.StatusInternalServerError)
 		}
 		return

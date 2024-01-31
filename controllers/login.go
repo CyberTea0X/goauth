@@ -36,7 +36,7 @@ func (p *PublicController) Login(c *gin.Context) {
 	if err != nil {
 		targetErr := new(models.ExternalServiceError)
 		if errors.As(err, &targetErr) {
-			c.JSON(targetErr.Status, targetErr.Msg)
+			c.JSON(targetErr.Status, models.ErrToMap(targetErr))
 		} else {
 			c.Status(http.StatusInternalServerError)
 		}
