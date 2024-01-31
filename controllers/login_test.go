@@ -30,18 +30,7 @@ func setupLoginTest(t *testing.T) (*gin.Engine, *models.ClientMock, *PublicContr
 }
 
 func TestLoginSucceed(t *testing.T) {
-	router, client, controller, w, inputJson := setupLoginTest(t)
-
-	client.Engine.GET(controller.LoginServiceURL.Path, func(c *gin.Context) {
-		c.JSON(http.StatusOK, models.User{Id: 1})
-	})
-
-	r, _ := http.NewRequest("GET", "/api/login", bytes.NewBuffer(inputJson))
-	router.ServeHTTP(w, r)
-	res := w.Result()
-	defer res.Body.Close()
-	defer models.TruncateDatabase(controller.DB)
-	assert.Equal(t, http.StatusOK, res.StatusCode)
+	_ = FakeLogin(t)
 }
 
 func TestLoginServiceError(t *testing.T) {

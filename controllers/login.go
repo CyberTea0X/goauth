@@ -19,6 +19,13 @@ type LoginInput struct {
 	DeviceId uint   `json:"device_id" binding:"required"`
 }
 
+type LoginOutput struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresAt    int64  `json:"expires_at"`
+	Role         string `json:"role"`
+}
+
 // Function that is responsible for user authorization.
 // In response to a successful authorization request, returns
 // Access Token and Refresh Token, as well as the time of death of the Access Token
@@ -72,11 +79,11 @@ func (p *PublicController) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"accessToken":  accessToken,
-		"refreshToken": refreshToken,
-		"expires_at":   expiresAt.Unix(),
-		"role":         user.Role,
+	c.JSON(http.StatusOK, LoginOutput{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		ExpiresAt:    expiresAt.Unix(),
+		Role:         user.Role,
 	})
 
 }
