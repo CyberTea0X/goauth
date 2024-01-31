@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strings"
 )
 
 type ConstantError string
@@ -60,11 +61,9 @@ type errorJson struct {
 // nil if error is not parsed
 // Function does not close response body
 func ErrFromResponse(response *http.Response) error {
-	if response.ContentLength == -1 {
-		return nil
-	}
 	content := response.Header.Get("Content-Type")
-	switch content {
+
+	switch content[0:strings.Index(content, ";")] {
 	case "application/json":
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
