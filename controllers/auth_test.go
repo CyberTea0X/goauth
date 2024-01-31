@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -15,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func testSetup(t *testing.T) (*gin.Engine, *PublicController, *http.Request, *httptest.ResponseRecorder) {
+func authTestSetup(t *testing.T) (*gin.Engine, *PublicController, *http.Request, *httptest.ResponseRecorder) {
 	gin.SetMode(gin.ReleaseMode)
 	router, controller, err := SetupTestRouter(nil)
 
@@ -29,7 +28,7 @@ func testSetup(t *testing.T) (*gin.Engine, *PublicController, *http.Request, *ht
 }
 
 func TestAuthSucceed(t *testing.T) {
-	router, controller, req, w := testSetup(t)
+	router, controller, req, w := authTestSetup(t)
 
 	accessClaims := token.NewAccess(123, "guest", time.Now().Add(time.Hour))
 	accessToken, err := accessClaims.TokenString(controller.AccessTokenCfg.Secret)
@@ -44,7 +43,7 @@ func TestAuthSucceed(t *testing.T) {
 }
 
 func TestAuthNoToken(t *testing.T) {
-	router, _, req, w := testSetup(t)
+	router, _, req, w := authTestSetup(t)
 
 	router.ServeHTTP(w, req)
 	res := w.Result()
@@ -55,7 +54,7 @@ func TestAuthNoToken(t *testing.T) {
 }
 
 func TestAuthInvalidToken(t *testing.T) {
-	router, controller, req, w := testSetup(t)
+	router, controller, req, w := authTestSetup(t)
 	accessClaims := token.NewAccess(123, "guest", time.Now().Add(time.Hour))
 	accessToken, err := accessClaims.TokenString(controller.AccessTokenCfg.Secret + "123")
 
@@ -73,7 +72,7 @@ func TestAuthInvalidToken(t *testing.T) {
 }
 
 func TestAuthTokenExpired(t *testing.T) {
-	router, controller, req, w := testSetup(t)
+	router, controller, req, w := authTestSetup(t)
 	accessClaims := token.NewAccess(123, "guest", time.Now().Add(-time.Hour))
 	accessToken, err := accessClaims.TokenString(controller.AccessTokenCfg.Secret)
 
@@ -82,7 +81,6 @@ func TestAuthTokenExpired(t *testing.T) {
 	}
 
 	req.Header.Set("Authorization", accessToken)
-	fmt.Println(req.Header)
 
 	router.ServeHTTP(w, req)
 	res := w.Result()

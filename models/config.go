@@ -80,7 +80,6 @@ func ParseConfig(filename string) (*TomlConfig, error) {
 		}
 		return nil, errors.Join(fmt.Errorf("Failed to parse config file\n%s", details.String()))
 	}
-	fmt.Println(tomlConfig.Services)
 
 	return tomlConfig, nil
 }
