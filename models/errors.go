@@ -16,6 +16,7 @@ const (
 	ErrNoTokenSpecified = ConstantError("no token specified")
 	ErrInvalidToken     = ConstantError("invalid token")
 	ErrTokenExpired     = ConstantError("token expired")
+	ErrInvalidJson      = ConstantError("invalid JSON")
 )
 
 // I want to return the same status code and message as the external service

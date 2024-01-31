@@ -28,7 +28,7 @@ func (p *PublicController) Login(c *gin.Context) {
 	var input LoginInput
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, models.ErrToMap(models.ErrInvalidJson))
 		return
 	}
 	user, err := models.LoginUser(p.Client, p.LoginServiceURL, input.Username, input.Password, input.Email)
