@@ -30,7 +30,7 @@ func NewController(tokensConfig models.TokensCfg, servicesConfig models.External
 		Path:   g.Path,
 		Scheme: "http",
 	}
-	l := servicesConfig.Guest
+	l := servicesConfig.Login
 	pCtrl.LoginServiceURL = url.URL{
 		Host:   fmt.Sprintf("%s:%s", l.Host, l.Port),
 		Path:   l.Path,
