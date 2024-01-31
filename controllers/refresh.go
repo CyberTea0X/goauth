@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -26,13 +27,13 @@ func (p *PublicController) Refresh(c *gin.Context) {
 
 	refreshClaims, err := token.RefreshFromString(input.RefreshToken, p.RefreshTokenCfg.Secret)
 
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if errors.Is(err, jwt.ErrTokenExpired) {
+		c.JSON(http.StatusUnauthorized, models.ErrToMap(models.ErrTokenExpired))
 		return
 	}
 
-	if refreshClaims.ExpiresAt.Time.Before(time.Now()) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "token expired"})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrToMap(models.ErrInvalidToken))
 		return
 	}
 
