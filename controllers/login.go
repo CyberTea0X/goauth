@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -40,12 +39,6 @@ func (p *PublicController) Login(c *gin.Context) {
 		} else {
 			c.Status(http.StatusInternalServerError)
 		}
-		return
-	}
-
-	if err != nil {
-		fmt.Println(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "login error"})
 		return
 	}
 

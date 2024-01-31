@@ -15,12 +15,7 @@ import (
 )
 
 func authTestSetup(t *testing.T) (*gin.Engine, *PublicController, *http.Request, *httptest.ResponseRecorder) {
-	gin.SetMode(gin.ReleaseMode)
-	router, controller, err := SetupTestRouter(nil)
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	router, controller := SetupTestRouter(t, nil)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/auth", nil)

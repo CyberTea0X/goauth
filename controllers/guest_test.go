@@ -15,10 +15,7 @@ import (
 func guestTestSetup(t *testing.T) (*models.ClientMock, *gin.Engine, *PublicController, *httptest.ResponseRecorder) {
 	gin.SetMode(gin.ReleaseMode)
 	client := models.NewClientMock()
-	router, controller, err := SetupTestRouter(client)
-	if err != nil {
-		t.Fatal(err)
-	}
+	router, controller := SetupTestRouter(t, client)
 	w := httptest.NewRecorder()
 	return client, router, controller, w
 }
@@ -70,10 +67,13 @@ func TestGuestInvalidJSON(t *testing.T) {
 func TestGuestServiceError(t *testing.T) {
 	client, router, controller, w := guestTestSetup(t)
 	defer models.TruncateDatabase(controller.DB)
+	const errMsg = "Unauthorized"
+	const status = http.StatusUnauthorized
 	client.Engine.POST(controller.GuestServiceURL.Path, func(c *gin.Context) {
-		c.Status(http.StatusUnauthorized)
+		c.JSON(status, gin.H{"error": errMsg})
 	})
 	guestInput := GuestInput{
+		FullName: "Guest",
 		DeviceId: 1,
 	}
 
@@ -81,10 +81,10 @@ func TestGuestServiceError(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/api/guest", bytes.NewReader(jsonInput))
 	router.ServeHTTP(w, req)
 	res := w.Result()
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Equal(t, status, res.StatusCode)
 	err := models.ErrFromResponse(res)
 	if err == nil {
 		t.Fatal("Failed to get error from response")
 	}
-	assert.Equal(t, models.ErrInvalidJson.Error(), err.Error())
+	assert.Equal(t, errMsg, err.Error())
 }
