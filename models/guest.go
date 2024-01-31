@@ -2,12 +2,9 @@ package models
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
-	"net/http"
 	"net/url"
 )
 
@@ -16,23 +13,8 @@ type Guest struct {
 	FullName string `json:"full_name,omitempty"`
 }
 
-// Calls rows.Next() and Scans the row into the guest struct
-func (g *Guest) FromRow(rows *sql.Rows) (*Guest, error) {
-	exists := rows.Next()
-	if !exists {
-		return g, errors.New(fmt.Sprintf("Can't scan guest from row"))
-	}
-
-	err := rows.Scan(&g.Id, &g.FullName)
-	if err != nil {
-		return g, errors.New(fmt.Sprintf("Can't scan guest from row: %s", err.Error()))
-	}
-
-	return g, nil
-}
-
-func RegisterGuest(fullname string, adress url.URL, client *http.Client) (*Guest, error) {
-	//client := &http.Client{
+// model.ExternalServiceError error returned if error is parsed from external service response
+func RegisterGuest(fullname string, adress url.URL, client HTTPClient) (*Guest, error) {
 	guest := new(Guest)
 	guest.FullName = fullname
 	requestBody, err := json.Marshal(guest)
@@ -41,9 +23,16 @@ func RegisterGuest(fullname string, adress url.URL, client *http.Client) (*Guest
 	}
 	r, err := client.Post(adress.String(), "application/json", bytes.NewBuffer(requestBody))
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(errors.New("HTTP error sending register post request"), err)
 	}
 	defer r.Body.Close()
+	if r.StatusCode != 200 {
+		extError := NewExternalServiceError(r.StatusCode)
+		if err := ErrFromResponse(r); err != nil {
+			extError.Msg = err.Error()
+		}
+		return nil, extError
+	}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, errors.Join(errors.New("Error reading body of a new guest request response"), err)

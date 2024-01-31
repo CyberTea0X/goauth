@@ -18,12 +18,13 @@ secret = "secret2"
 
 # External services that goauth uses
 [services]
-[guest]
+
+[services.guest]
 host = "127.0.0.1"
 port = "8081"
 path = "/api/guest"
 
-[login]
+[services.login]
 host = "127.0.0.1"
 port = "8081"
 path = "/api/login"

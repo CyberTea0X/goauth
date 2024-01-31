@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupTestRouter() (*gin.Engine, *PublicController, error) {
+func SetupTestRouter(client models.HTTPClient) (*gin.Engine, *PublicController, error) {
 	config, err := models.ParseConfig("../config_test.toml")
 
 	if err != nil {
@@ -18,7 +18,7 @@ func SetupTestRouter() (*gin.Engine, *PublicController, error) {
 		return nil, nil, err
 	}
 
-	controller := SetupController(config.Tokens, config.Services, db)
+	controller := NewController(config.Tokens, config.Services, client, db)
 
 	return SetupRouter(controller), controller, nil
 }

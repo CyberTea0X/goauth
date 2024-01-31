@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/CyberTea0X/goauth/src/backend/models"
 	"github.com/CyberTea0X/goauth/src/backend/models/token"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +17,7 @@ import (
 
 func testSetup(t *testing.T) (*gin.Engine, *PublicController, *http.Request, *httptest.ResponseRecorder) {
 	gin.SetMode(gin.ReleaseMode)
-	router, controller, err := SetupTestRouter()
+	router, controller, err := SetupTestRouter(nil)
 
 	if err != nil {
 		t.Fatal(err)
@@ -48,7 +49,7 @@ func TestAuthNoToken(t *testing.T) {
 	router.ServeHTTP(w, req)
 	res := w.Result()
 	assert.Equal(t, http.StatusUnauthorized, res.StatusCode)
-	expected, _ := json.Marshal(ErrToMap(ErrNoTokenSpecified{}))
+	expected, _ := json.Marshal(models.ErrToMap(models.ErrNoTokenSpecified))
 	body, _ := io.ReadAll(res.Body)
 	assert.JSONEq(t, string(expected), string(body))
 }
@@ -66,7 +67,7 @@ func TestAuthInvalidToken(t *testing.T) {
 	router.ServeHTTP(w, req)
 	res := w.Result()
 	assert.Equal(t, http.StatusUnauthorized, res.StatusCode)
-	expected, _ := json.Marshal(ErrToMap(ErrInvalidAccessToken{}))
+	expected, _ := json.Marshal(models.ErrToMap(models.ErrInvalidToken))
 	body, _ := io.ReadAll(res.Body)
 	assert.JSONEq(t, string(expected), string(body))
 }
@@ -86,7 +87,7 @@ func TestAuthTokenExpired(t *testing.T) {
 	router.ServeHTTP(w, req)
 	res := w.Result()
 	assert.Equal(t, http.StatusUnauthorized, res.StatusCode)
-	expected, _ := json.Marshal(ErrToMap(ErrTokenExpired{}))
+	expected, _ := json.Marshal(models.ErrToMap(models.ErrTokenExpired))
 	body, _ := io.ReadAll(res.Body)
 	assert.JSONEq(t, string(expected), string(body))
 	w.Flush()

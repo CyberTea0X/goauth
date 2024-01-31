@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/CyberTea0X/goauth/src/backend/controllers"
 	"github.com/CyberTea0X/goauth/src/backend/models"
@@ -46,7 +48,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	controller := controllers.SetupController(config.Tokens, config.Services, db)
+	client := &http.Client{Timeout: time.Second * 15}
+
+	controller := controllers.NewController(config.Tokens, config.Services, client, db)
 
 	port := "8080"
 	fmt.Println("Auth server starting on port", port)

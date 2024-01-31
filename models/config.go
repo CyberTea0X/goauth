@@ -59,20 +59,28 @@ type TomlConfig struct {
 	Services ExternalServicesConfig
 }
 
+func (*TomlConfig) Validate() error {
+	return nil
+}
+
 func ParseConfig(filename string) (*TomlConfig, error) {
-	configFile, err := os.ReadFile(filename)
+	configFile, err := os.Open(filename)
 
 	if err != nil {
 		return nil, err
 	}
 
 	tomlConfig := new(TomlConfig)
-
-	err = toml.Unmarshal(configFile, tomlConfig)
-
-	if err != nil {
-		return nil, errors.Join(errors.New("Failed to parse config file"), err)
+	d := toml.NewDecoder(configFile)
+	d.DisallowUnknownFields()
+	if err = d.Decode(tomlConfig); err != nil {
+		var details *toml.StrictMissingError
+		if !errors.As(err, &details) {
+			return nil, errors.Join(errors.New("Failed to parse config file"), err)
+		}
+		return nil, errors.Join(fmt.Errorf("Failed to parse config file\n%s", details.String()))
 	}
+	fmt.Println(tomlConfig.Services)
 
 	return tomlConfig, nil
 }

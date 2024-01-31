@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -45,8 +46,13 @@ func (p *PublicController) Guest(c *gin.Context) {
 	guest, err := models.RegisterGuest(input.FullName, p.GuestServiceURL, p.Client)
 
 	if err != nil {
-		log.Println("Error registering new guest", err)
-		c.Status(http.StatusInternalServerError)
+		targetErr := new(models.ExternalServiceError)
+		if errors.As(err, &targetErr) {
+			c.JSON(targetErr.Status, targetErr.Msg)
+		} else {
+			log.Println(err.Error())
+			c.Status(http.StatusInternalServerError)
+		}
 		return
 	}
 

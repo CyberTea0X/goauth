@@ -3,9 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"fmt"
-	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/CyberTea0X/goauth/src/backend/models"
 	"github.com/gin-gonic/gin"
@@ -17,10 +15,10 @@ type PublicController struct {
 	RefreshTokenCfg models.RefreshTokenCfg
 	GuestServiceURL url.URL
 	LoginServiceURL url.URL
-	Client          *http.Client
+	Client          models.HTTPClient
 }
 
-func SetupController(tokensConfig models.TokensCfg, servicesConfig models.ExternalServicesConfig, db *sql.DB) *PublicController {
+func NewController(tokensConfig models.TokensCfg, servicesConfig models.ExternalServicesConfig, client models.HTTPClient, db *sql.DB) *PublicController {
 
 	pCtrl := new(PublicController)
 
@@ -28,15 +26,17 @@ func SetupController(tokensConfig models.TokensCfg, servicesConfig models.Extern
 	pCtrl.RefreshTokenCfg = tokensConfig.Refresh
 	g := servicesConfig.Guest
 	pCtrl.GuestServiceURL = url.URL{
-		Host: fmt.Sprintf("%s:%s", g.Host, g.Port),
-		Path: g.Path,
+		Host:   fmt.Sprintf("%s:%s", g.Host, g.Port),
+		Path:   g.Path,
+		Scheme: "http",
 	}
 	l := servicesConfig.Guest
 	pCtrl.LoginServiceURL = url.URL{
-		Host: fmt.Sprintf("%s:%s", l.Host, l.Port),
-		Path: l.Path,
+		Host:   fmt.Sprintf("%s:%s", l.Host, l.Port),
+		Path:   l.Path,
+		Scheme: "http",
 	}
-	pCtrl.Client = &http.Client{Timeout: time.Second * 15}
+	pCtrl.Client = client
 
 	pCtrl.DB = db
 	return pCtrl

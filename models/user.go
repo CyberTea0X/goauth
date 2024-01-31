@@ -1,11 +1,10 @@
 package models
 
 import (
-	"database/sql"
+	"encoding/json"
 	"errors"
-	"fmt"
-	"golang.org/x/crypto/bcrypt"
-	"net/mail"
+	"io"
+	"net/url"
 )
 
 type User struct {
@@ -16,58 +15,35 @@ type User struct {
 	Role     string `json:"role"`     // not null
 }
 
-func VerifyPassword(password string, hashedPassword string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-}
-
-func IsValidEmail(email string) bool {
-	_, err := mail.ParseAddress(email)
-	if err == nil {
-		return true
-	}
-	return false
-}
-
-// Calls rows.Next() and Scans the row into the user struct
-func (u *User) FromRow(rows *sql.Rows) (*User, error) {
-	exists := rows.Next()
-	if !exists {
-		return u, errors.New(fmt.Sprintf("Can't scan user from row"))
-	}
-
-	err := rows.Scan(&u.Id, &u.Username, &u.Password, &u.Email, &u.Role)
+func LoginUser(client HTTPClient, adress url.URL, username string, password string, email string) (*User, error) {
+	user := new(User)
+	q := adress.Query()
+	q.Set("username", username)
+	q.Set("password", password)
+	q.Set("email", email)
+	adress.RawQuery = q.Encode()
+	r, err := client.Get(adress.String())
 	if err != nil {
-		return u, errors.New(fmt.Sprintf("Can't scan user from row: %s", err.Error()))
+		return nil, errors.Join(errors.New("HTTP error sending get request to login service"), err)
 	}
-
-	return u, nil
-}
-
-func GetUserByEmail(db *sql.DB, email string) (*User, error) {
-
-	u := &User{}
-
-	rows, err := db.Query("SELECT * FROM users WHERE email =? LIMIT 1", email)
+	if r.StatusCode != 200 {
+		extError := NewExternalServiceError(r.StatusCode)
+		if err := ErrFromResponse(r); err != nil {
+			extError.Msg = err.Error()
+		}
+		return nil, extError
+	}
+	rawBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		return u, errors.New(fmt.Sprintf("User with email=%s not found: %s", email, err.Error()))
+		return nil, errors.Join(errors.New("Error reading login responce body"), err)
 	}
-	exists := rows.Next()
-	if !exists {
-		return u, errors.New(fmt.Sprintf("User with email=%s not found", email))
+	if err := json.Unmarshal(rawBody, user); err != nil {
+		return nil, errors.Join(errors.New("Error unmarshalling login responce to User struct"), err)
 	}
-	return u.FromRow(rows)
-
-}
-
-func GetUserByUsername(db *sql.DB, username string) (*User, error) {
-
-	u := &User{}
-
-	row, err := db.Query("SELECT * FROM users WHERE username =? LIMIT 1", username)
-	if err != nil {
-		return u, errors.New(fmt.Sprintf("User with username=%s not found: %s", username, err.Error()))
-	}
-	return u.FromRow(row)
+	user.Username = username
+	user.Password = password
+	user.Email = email
+	return user, nil
 }
 
 func (u *User) PrepareGive() {

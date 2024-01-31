@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,7 +10,6 @@ import (
 	"github.com/CyberTea0X/goauth/src/backend/models"
 	"github.com/CyberTea0X/goauth/src/backend/models/token"
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // Structure describing the json fields that should be in the login request
@@ -31,35 +31,26 @@ func (p *PublicController) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	user, err := models.LoginUser(p.Client, p.LoginServiceURL, input.Username, input.Password, input.Email)
 
-	var err error
-	var udb = &models.User{}
-
-	if input.Username != "" {
-		udb, err = models.GetUserByUsername(p.DB, input.Username)
-	} else {
-		udb, err = models.GetUserByEmail(p.DB, input.Email)
+	if err != nil {
+		targetErr := new(models.ExternalServiceError)
+		if errors.As(err, &targetErr) {
+			c.JSON(targetErr.Status, targetErr.Msg)
+		} else {
+			c.Status(http.StatusInternalServerError)
+		}
+		return
 	}
 
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "user not found"})
-		return
-	}
-
-	err = models.VerifyPassword(input.Password, udb.Password)
-
-	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid password"})
-		return
-	} else if err != nil {
-		log.Println("Error verifying user password: ", err)
-		c.Status(http.StatusInternalServerError)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "login error"})
 		return
 	}
 
 	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.LifespanHour))
-	refreshClaims := token.NewRefresh(-1, input.DeviceId, udb.Id, udb.Role, expiresAt)
+	refreshClaims := token.NewRefresh(-1, input.DeviceId, user.Id, user.Role, expiresAt)
 
 	refreshId, err := refreshClaims.InsertOrUpdate(p.DB)
 
@@ -79,7 +70,7 @@ func (p *PublicController) Login(c *gin.Context) {
 	}
 
 	expiresAt = time.Now().Add(time.Minute * time.Duration(p.AccessTokenCfg.LifespanMinute))
-	accessClaims := token.NewAccess(udb.Id, udb.Role, expiresAt)
+	accessClaims := token.NewAccess(user.Id, user.Role, expiresAt)
 	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 
 	if err != nil {
@@ -92,7 +83,7 @@ func (p *PublicController) Login(c *gin.Context) {
 		"accessToken":  accessToken,
 		"refreshToken": refreshToken,
 		"expires_at":   expiresAt.Unix(),
-		"role":         udb.Role,
+		"role":         user.Role,
 	})
 
 }
