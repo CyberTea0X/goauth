@@ -63,7 +63,11 @@ type errorJson struct {
 func ErrFromResponse(response *http.Response) error {
 	content := response.Header.Get("Content-Type")
 
-	switch content[0:strings.Index(content, ";")] {
+	s := strings.Index(content, ";")
+	if s != -1 {
+		content = content[0:s]
+	}
+	switch content {
 	case "application/json":
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
