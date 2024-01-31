@@ -40,6 +40,7 @@ func TestLoginSucceed(t *testing.T) {
 	router.ServeHTTP(w, r)
 	res := w.Result()
 	defer res.Body.Close()
+	defer models.TruncateDatabase(controller.DB)
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 }
 
