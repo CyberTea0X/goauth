@@ -3,7 +3,6 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,20 +14,19 @@ import (
 
 func TestGuestSucceeds(t *testing.T) {
 	gin.SetMode(gin.ReleaseMode)
-	client := new(models.ClientMock)
+	client := models.NewClientMock()
+	router, controller, err := SetupTestRouter(client)
 	guest := models.Guest{
 		FullName: "Test",
+		Id:       1,
 	}
-	jsonGuest, _ := json.Marshal(guest)
-	client.Response = &http.Response{
-		StatusCode: 200,
-		Body:       io.NopCloser(bytes.NewReader(jsonGuest)),
-	}
+	client.Engine.POST(controller.GuestServiceURL.Path, func(c *gin.Context) {
+		c.JSON(http.StatusOK, &guest)
+	})
 	guestInput := GuestInput{
 		FullName: guest.FullName,
 		DeviceId: 1,
 	}
-	router, controller, err := SetupTestRouter(client)
 	defer models.TruncateDatabase(controller.DB)
 
 	if err != nil {
@@ -44,19 +42,14 @@ func TestGuestSucceeds(t *testing.T) {
 
 func TestGuestFails(t *testing.T) {
 	gin.SetMode(gin.ReleaseMode)
-	client := new(models.ClientMock)
-	guest := models.Guest{
-		FullName: "Test",
-	}
-	jsonGuest, _ := json.Marshal(guest)
-	client.Response = &http.Response{
-		StatusCode: http.StatusBadRequest,
-		Body:       io.NopCloser(bytes.NewReader(jsonGuest)),
-	}
+	client := models.NewClientMock()
+	router, controller, err := SetupTestRouter(client)
+	client.Engine.POST(controller.GuestServiceURL.Path, func(c *gin.Context) {
+		c.Status(http.StatusBadRequest)
+	})
 	guestInput := GuestInput{
 		DeviceId: 1,
 	}
-	router, controller, err := SetupTestRouter(client)
 	defer models.TruncateDatabase(controller.DB)
 
 	if err != nil {
