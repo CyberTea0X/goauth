@@ -30,7 +30,9 @@ func setupLoginTest(t *testing.T) (*gin.Engine, *models.ClientMock, *PublicContr
 }
 
 func TestLoginSucceed(t *testing.T) {
-	_ = FakeLogin(t)
+	// Fakelogin function fails the test if Login failed
+	_, controller, _ := FakeLogin(t)
+	defer models.TruncateDatabase(controller.DB)
 }
 
 func TestLoginServiceError(t *testing.T) {

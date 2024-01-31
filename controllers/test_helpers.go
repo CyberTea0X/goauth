@@ -32,7 +32,12 @@ func SetupTestRouter(t *testing.T, client models.HTTPClient) (*gin.Engine, *Publ
 	return SetupRouter(controller), controller
 }
 
-func FakeLogin(t *testing.T) *LoginOutput {
+// Creates fake data both in the database and the returned structure that can be used in tests.
+//
+// If encounters error fails the test.
+// Database should be cleaned up manually after calling this function.
+// Controller and router can be used in further tests
+func FakeLogin(t *testing.T) (*LoginOutput, *PublicController, *gin.Engine) {
 	client := models.NewClientMock()
 	router, controller := SetupTestRouter(t, client)
 	input := LoginInput{
@@ -55,7 +60,6 @@ func FakeLogin(t *testing.T) *LoginOutput {
 	router.ServeHTTP(w, r)
 	res := w.Result()
 	defer res.Body.Close()
-	defer models.TruncateDatabase(controller.DB)
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 	bodyRaw, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -66,5 +70,5 @@ func FakeLogin(t *testing.T) *LoginOutput {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return output
+	return output, controller, router
 }
