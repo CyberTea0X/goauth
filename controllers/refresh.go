@@ -12,20 +12,20 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// Structure describing the json fields that should be in the refresh request
-type RefreshInput struct {
-	RefreshToken string `json:"token" binding:"required"`
+type RefreshOutput struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresAt    int64  `json:"expires_at"`
 }
 
 func (p *PublicController) Refresh(c *gin.Context) {
-	var input RefreshInput
-
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrToMap(models.ErrInvalidJson))
+	inputToken := c.Query("token")
+	if inputToken == "" {
+		c.JSON(http.StatusBadRequest, models.ErrToMap(models.ErrNoTokenSpecified))
 		return
 	}
 
-	refreshClaims, err := token.RefreshFromString(input.RefreshToken, p.RefreshTokenCfg.Secret)
+	refreshClaims, err := token.RefreshFromString(inputToken, p.RefreshTokenCfg.Secret)
 
 	if errors.Is(err, jwt.ErrTokenExpired) {
 		c.JSON(http.StatusUnauthorized, models.ErrToMap(models.ErrTokenExpired))
@@ -79,10 +79,10 @@ func (p *PublicController) Refresh(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"accessToken":  accessToken,
-		"refreshToken": refreshToken,
-		"expires_at":   expiresUnix,
+	c.JSON(http.StatusOK, RefreshOutput{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		ExpiresAt:    expiresUnix,
 	})
 
 }
