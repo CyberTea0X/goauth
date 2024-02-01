@@ -57,6 +57,7 @@ func TestGuestInvalidJSON(t *testing.T) {
 	req, _ := http.NewRequest("POST", "/api/guest", bytes.NewReader(jsonInput))
 	router.ServeHTTP(w, req)
 	res := w.Result()
+	defer res.Body.Close()
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	err := models.ErrFromResponse(res)
 	if err == nil {
@@ -82,6 +83,7 @@ func TestGuestServiceError(t *testing.T) {
 	req, _ := http.NewRequest("POST", "/api/guest", bytes.NewReader(jsonInput))
 	router.ServeHTTP(w, req)
 	res := w.Result()
+	defer res.Body.Close()
 	assert.Equal(t, status, res.StatusCode)
 	err := models.ErrFromResponse(res)
 	if err == nil {

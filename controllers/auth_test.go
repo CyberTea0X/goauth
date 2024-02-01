@@ -42,10 +42,9 @@ func TestAuthNoToken(t *testing.T) {
 	router, _, req, w := authTestSetup(t)
 
 	router.ServeHTTP(w, req)
-	res := w.Result()
-	assert.Equal(t, http.StatusUnauthorized, res.StatusCode)
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
 	expected, _ := json.Marshal(models.ErrToMap(models.ErrNoTokenSpecified))
-	body, _ := io.ReadAll(res.Body)
+	body, _ := io.ReadAll(w.Body)
 	assert.JSONEq(t, string(expected), string(body))
 }
 
@@ -60,10 +59,9 @@ func TestAuthInvalidToken(t *testing.T) {
 	req.Header.Set("Authorization", accessToken)
 
 	router.ServeHTTP(w, req)
-	res := w.Result()
-	assert.Equal(t, http.StatusUnauthorized, res.StatusCode)
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
 	expected, _ := json.Marshal(models.ErrToMap(models.ErrInvalidToken))
-	body, _ := io.ReadAll(res.Body)
+	body, _ := io.ReadAll(w.Body)
 	assert.JSONEq(t, string(expected), string(body))
 }
 
@@ -79,10 +77,9 @@ func TestAuthTokenExpired(t *testing.T) {
 	req.Header.Set("Authorization", accessToken)
 
 	router.ServeHTTP(w, req)
-	res := w.Result()
-	assert.Equal(t, http.StatusUnauthorized, res.StatusCode)
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
 	expected, _ := json.Marshal(models.ErrToMap(models.ErrTokenExpired))
-	body, _ := io.ReadAll(res.Body)
+	body, _ := io.ReadAll(w.Body)
 	assert.JSONEq(t, string(expected), string(body))
 	w.Flush()
 }
