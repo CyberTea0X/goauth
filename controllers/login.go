@@ -33,8 +33,8 @@ func (p *PublicController) Login(c *gin.Context) {
 
 	var input LoginInput
 
-	if err := c.ShouldBind(&input); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrToMap(models.ErrInvalidJson))
+	if err := c.ShouldBindQuery(&input); err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrToMap(models.ErrInvalidQuery))
 		return
 	}
 	user, err := models.LoginUser(p.Client, p.LoginServiceURL, input.Username, input.Password, input.Email)
