@@ -50,7 +50,7 @@ func (c *RefreshToken) TokenString(secret string) (string, error) {
 // Inserts row that identifies token into the database (not token string)
 func (t *RefreshToken) InsertToDb(db *sql.DB) (int64, error) {
 	const query = "INSERT INTO refresh_tokens (device_id, expires_at, user_id, role) VALUES (?,?,?,?)"
-	res, err := db.Exec(query, t.DeviceID, t.ExpiresAt.Unix(), t.UserID, t.Roles)
+	res, err := db.Exec(query, t.DeviceID, t.ExpiresAt.Unix(), t.UserID)
 	if err != nil {
 		return 0, err
 	}
