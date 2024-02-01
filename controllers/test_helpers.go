@@ -1,11 +1,11 @@
 package controllers
 
 import (
-	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"github.com/CyberTea0X/goauth/src/backend/models"
@@ -40,23 +40,23 @@ func SetupTestRouter(t *testing.T, client models.HTTPClient) (*gin.Engine, *Publ
 func FakeLogin(t *testing.T) (*LoginOutput, *PublicController, *gin.Engine) {
 	client := models.NewClientMock()
 	router, controller := SetupTestRouter(t, client)
-	input := LoginInput{
-		Username: "test",
-		Password: "PASSWORD",
-		Email:    "EMAIL",
-		DeviceId: 1,
-	}
-	w := httptest.NewRecorder()
-	inputJson, err := json.Marshal(input)
+	u, err := url.Parse("/api/login")
 	if err != nil {
 		t.Fatal(err)
 	}
+	q := u.Query()
+	q.Add("username", "test")
+	q.Add("password", "PASSWORD")
+	q.Add("email", "test@example.com")
+	q.Add("device_id", "123")
+	u.RawQuery = q.Encode()
+	w := httptest.NewRecorder()
 
 	client.Engine.GET(controller.LoginServiceURL.Path, func(c *gin.Context) {
 		c.JSON(http.StatusOK, models.User{Id: 1})
 	})
 
-	r, _ := http.NewRequest("GET", "/api/login", bytes.NewBuffer(inputJson))
+	r, _ := http.NewRequest("GET", u.String(), nil)
 	router.ServeHTTP(w, r)
 	res := w.Result()
 	defer res.Body.Close()

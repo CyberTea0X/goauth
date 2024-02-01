@@ -1,10 +1,9 @@
 package controllers
 
 import (
-	"bytes"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"github.com/CyberTea0X/goauth/src/backend/models"
@@ -12,21 +11,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setupLoginTest(t *testing.T) (*gin.Engine, *models.ClientMock, *PublicController, *httptest.ResponseRecorder, []byte) {
+const loginPath = "/api/login"
+
+func setupLoginTest(t *testing.T) (*gin.Engine, *models.ClientMock, *PublicController, *httptest.ResponseRecorder, string) {
 	client := models.NewClientMock()
 	router, controller := SetupTestRouter(t, client)
-	input := LoginInput{
-		Username: "test",
-		Password: "PASSWORD",
-		Email:    "EMAIL",
-		DeviceId: 1,
-	}
 	w := httptest.NewRecorder()
-	inputJson, err := json.Marshal(input)
+	u, err := url.Parse(loginPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return router, client, controller, w, inputJson
+	q := u.Query()
+	q.Add("username", "test")
+	q.Add("password", "PASSWORD")
+	q.Add("email", "test@example.com")
+	q.Add("device_id", "123")
+	u.RawQuery = q.Encode()
+	return router, client, controller, w, u.String()
 }
 
 func TestLoginSucceed(t *testing.T) {
@@ -38,11 +39,11 @@ func TestLoginSucceed(t *testing.T) {
 func TestLoginServiceError(t *testing.T) {
 	const errMsg = "example"
 	const errStatus = http.StatusUnauthorized
-	router, client, controller, w, inputJson := setupLoginTest(t)
+	router, client, controller, w, address := setupLoginTest(t)
 	client.Engine.GET(controller.LoginServiceURL.Path, func(c *gin.Context) {
 		c.JSON(errStatus, gin.H{"error": errMsg})
 	})
-	r, _ := http.NewRequest("GET", "/api/login", bytes.NewBuffer(inputJson))
+	r, _ := http.NewRequest("GET", address, nil)
 	router.ServeHTTP(w, r)
 	res := w.Result()
 	defer res.Body.Close()

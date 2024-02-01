@@ -13,10 +13,10 @@ import (
 
 // Structure describing the json fields that should be in the login request
 type LoginInput struct {
-	Username string `json:"username"`
-	Password string `json:"password" binding:"required"`
-	Email    string `json:"email"`
-	DeviceId uint   `json:"device_id" binding:"required"`
+	Username string `form:"username"`
+	Password string `form:"password" binding:"required"`
+	Email    string `form:"email"`
+	DeviceId uint   `form:"device_id" binding:"required"`
 }
 
 type LoginOutput struct {
@@ -33,7 +33,7 @@ func (p *PublicController) Login(c *gin.Context) {
 
 	var input LoginInput
 
-	if err := c.ShouldBindJSON(&input); err != nil {
+	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrToMap(models.ErrInvalidJson))
 		return
 	}
