@@ -2,16 +2,26 @@
 
 ## How to run
 
-Make sure you installed:
+Make sure you installed mysql and mysql server is running.
+Configure user, database and password for this service.
 
-    - golang, at least 1.21 version.
-    - mysql (mysql server running)
+### Build from source
 
-Then go to the backend directory and copy example.env as .env file.
-Configure server using .env file.
+Make sure you installed and configured the latest golang version.
 
-Then type
+Clone this repository
 
 ```bash
-go run .
+git clone https://github.com/CyberTea0X/goauth
 ```
+
+Then build binary
+
+```bash
+cd goauth
+go build -o goauth
+```
+
+Place the binary where you need it and then copy the `example.toml` file there.
+Rename example.toml to config.toml, configure this file, make sure mysql is running
+and you can start the server by running executable.
