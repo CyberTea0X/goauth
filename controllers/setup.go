@@ -51,6 +51,6 @@ func SetupRouter(c *PublicController) *gin.Engine {
 	public.GET("login", c.Login)
 	public.GET("refresh", c.Refresh)
 	public.GET("auth", c.Auth)
-	public.GET("guest", c.Guest)
+	public.POST("guest", c.Guest)
 	return router
 }

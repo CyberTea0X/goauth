@@ -33,7 +33,7 @@ const ROLE = "guest"
 //	@Produce		json
 //	@Success		200	{object}	GuestOutput
 //	@Schemes
-//	@Router	/guest [get]
+//	@Router	/guest [post]
 func (p *PublicController) Guest(c *gin.Context) {
 
 	var input GuestInput
