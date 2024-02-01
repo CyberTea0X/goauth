@@ -70,7 +70,7 @@ func (p *PublicController) Refresh(c *gin.Context) {
 	}
 
 	expiresAt = time.Now().Add(time.Minute * time.Duration(p.AccessTokenCfg.LifespanMinute))
-	accessClaims := token.NewAccess(refreshClaims.UserID, refreshClaims.Role, expiresAt)
+	accessClaims := token.NewAccess(refreshClaims.UserID, refreshClaims.Roles, expiresAt)
 	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 
 	if err != nil {

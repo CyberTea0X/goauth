@@ -10,19 +10,19 @@ import (
 
 type RefreshToken struct {
 	jwt.RegisteredClaims
-	TokenID  int64  `json:"token_id"`
-	DeviceID uint   `json:"device_id"`
-	UserID   int64  `json:"user_id"`
-	Role     string `json:"role"`
+	TokenID  int64    `json:"token_id"`
+	DeviceID uint     `json:"device_id"`
+	UserID   int64    `json:"user_id"`
+	Roles    []string `json:"role"`
 }
 
-func NewRefresh(tokenId int64, deviceId uint, userId int64, role string, expiresAt time.Time) *RefreshToken {
+func NewRefresh(tokenId int64, deviceId uint, userId int64, roles []string, expiresAt time.Time) *RefreshToken {
 	t := new(RefreshToken)
 	t.TokenID = tokenId
 	t.DeviceID = deviceId
 	t.UserID = userId
 	t.ExpiresAt = jwt.NewNumericDate(expiresAt)
-	t.Role = role
+	t.Roles = roles
 	return t
 }
 
@@ -50,7 +50,7 @@ func (c *RefreshToken) TokenString(secret string) (string, error) {
 // Inserts row that identifies token into the database (not token string)
 func (t *RefreshToken) InsertToDb(db *sql.DB) (int64, error) {
 	const query = "INSERT INTO refresh_tokens (device_id, expires_at, user_id, role) VALUES (?,?,?,?)"
-	res, err := db.Exec(query, t.DeviceID, t.ExpiresAt.Unix(), t.UserID, t.Role)
+	res, err := db.Exec(query, t.DeviceID, t.ExpiresAt.Unix(), t.UserID, t.Roles)
 	if err != nil {
 		return 0, err
 	}
@@ -66,7 +66,7 @@ func (t *RefreshToken) Exists(db *sql.DB) (bool, error) {
 	const query = "" +
 		"SELECT EXISTS(SELECT * FROM refresh_tokens " +
 		"WHERE id=? AND user_id=? AND device_id=? AND expires_at=? AND role=?)"
-	res, err := db.Query(query, t.TokenID, t.UserID, t.DeviceID, t.ExpiresAt.Unix(), t.Role)
+	res, err := db.Query(query, t.TokenID, t.UserID, t.DeviceID, t.ExpiresAt.Unix(), t.Roles)
 	if err != nil {
 		return false, err
 	}
@@ -81,7 +81,7 @@ func (t *RefreshToken) FindID(db *sql.DB) (int64, bool, error) {
 	const query = "" +
 		"SELECT id FROM refresh_tokens " +
 		"WHERE user_id=? AND device_id=? AND role=?"
-	res, err := db.Query(query, t.UserID, t.DeviceID, t.Role)
+	res, err := db.Query(query, t.UserID, t.DeviceID, t.Roles)
 	if err != nil {
 		return 0, false, err
 	}
@@ -96,7 +96,7 @@ func (t *RefreshToken) FindID(db *sql.DB) (int64, bool, error) {
 // Updates expiredAt field of token in the database
 func (t *RefreshToken) Update(db *sql.DB, expiresAt uint64) (*RefreshToken, error) {
 	const q = "UPDATE refresh_tokens SET expires_at=? WHERE id=? AND user_id =? AND device_id =? AND role=?"
-	_, err := db.Exec(q, expiresAt, t.TokenID, t.UserID, t.DeviceID, t.Role)
+	_, err := db.Exec(q, expiresAt, t.TokenID, t.UserID, t.DeviceID, t.Roles)
 	return t, err
 }
 
