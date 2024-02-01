@@ -15,18 +15,19 @@ import (
 )
 
 func authTestSetup(t *testing.T) (*gin.Engine, *PublicController, *http.Request, *httptest.ResponseRecorder) {
-	router, controller := SetupTestRouter(t, nil)
+	p := SetupTestController(t, http.DefaultClient)
+	router := SetupTestRouter(t, p)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/auth", nil)
-	return router, controller, req, w
+	return router, p, req, w
 }
 
 func TestAuthSucceed(t *testing.T) {
-	router, controller, req, w := authTestSetup(t)
+	router, p, req, w := authTestSetup(t)
 
 	accessClaims := token.NewAccess(123, "guest", time.Now().Add(time.Hour))
-	accessToken, err := accessClaims.TokenString(controller.AccessTokenCfg.Secret)
+	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 
 	if err != nil {
 		t.Fatal(err)
@@ -49,9 +50,9 @@ func TestAuthNoToken(t *testing.T) {
 }
 
 func TestAuthInvalidToken(t *testing.T) {
-	router, controller, req, w := authTestSetup(t)
+	router, p, req, w := authTestSetup(t)
 	accessClaims := token.NewAccess(123, "guest", time.Now().Add(time.Hour))
-	accessToken, err := accessClaims.TokenString(controller.AccessTokenCfg.Secret + "123")
+	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret + "123")
 
 	if err != nil {
 		t.Fatal(err)
@@ -67,9 +68,9 @@ func TestAuthInvalidToken(t *testing.T) {
 }
 
 func TestAuthTokenExpired(t *testing.T) {
-	router, controller, req, w := authTestSetup(t)
+	router, p, req, w := authTestSetup(t)
 	accessClaims := token.NewAccess(123, "guest", time.Now().Add(-time.Hour))
-	accessToken, err := accessClaims.TokenString(controller.AccessTokenCfg.Secret)
+	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 
 	if err != nil {
 		t.Fatal(err)

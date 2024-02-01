@@ -13,8 +13,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func SetupTestRouter(t *testing.T, client models.HTTPClient) (*gin.Engine, *PublicController) {
-	gin.SetMode(gin.ReleaseMode)
+func SetupTestRouter(t *testing.T, controller *PublicController) *gin.Engine {
+	gin.SetMode(gin.TestMode)
+	return SetupRouter(controller)
+}
+
+func SetupTestController(t *testing.T, client models.HTTPClient) *PublicController {
 	config, err := models.ParseConfig("../config_test.toml")
 
 	if err != nil {
@@ -27,9 +31,7 @@ func SetupTestRouter(t *testing.T, client models.HTTPClient) (*gin.Engine, *Publ
 		t.Fatal(err)
 	}
 
-	controller := NewController(config.Tokens, config.Services, client, db)
-
-	return SetupRouter(controller), controller
+	return NewController(config.Tokens, config.Services, client, db)
 }
 
 // Creates fake data both in the database and the returned structure that can be used in tests.
@@ -39,7 +41,8 @@ func SetupTestRouter(t *testing.T, client models.HTTPClient) (*gin.Engine, *Publ
 // Controller and router can be used in further tests
 func FakeLogin(t *testing.T) (*LoginOutput, *PublicController, *gin.Engine) {
 	client := models.NewClientMock()
-	router, controller := SetupTestRouter(t, client)
+	controller := SetupTestController(t, client)
+	router := SetupTestRouter(t, controller)
 	u, err := url.Parse("/api/login")
 	if err != nil {
 		t.Fatal(err)
@@ -58,10 +61,8 @@ func FakeLogin(t *testing.T) (*LoginOutput, *PublicController, *gin.Engine) {
 
 	r, _ := http.NewRequest("GET", u.String(), nil)
 	router.ServeHTTP(w, r)
-	res := w.Result()
-	defer res.Body.Close()
-	assert.Equal(t, http.StatusOK, res.StatusCode)
-	bodyRaw, err := io.ReadAll(res.Body)
+	assert.Equal(t, http.StatusOK, w.Code)
+	bodyRaw, err := io.ReadAll(w.Body)
 	if err != nil {
 		t.Fatal(err)
 	}

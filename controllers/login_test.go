@@ -15,7 +15,8 @@ const loginPath = "/api/login"
 
 func setupLoginTest(t *testing.T) (*gin.Engine, *models.ClientMock, *PublicController, *httptest.ResponseRecorder, string) {
 	client := models.NewClientMock()
-	router, controller := SetupTestRouter(t, client)
+	p := SetupTestController(t, client)
+	router := SetupTestRouter(t, p)
 	w := httptest.NewRecorder()
 	u, err := url.Parse(loginPath)
 	if err != nil {
@@ -27,20 +28,20 @@ func setupLoginTest(t *testing.T) (*gin.Engine, *models.ClientMock, *PublicContr
 	q.Add("email", "test@example.com")
 	q.Add("device_id", "123")
 	u.RawQuery = q.Encode()
-	return router, client, controller, w, u.String()
+	return router, client, p, w, u.String()
 }
 
 func TestLoginSucceed(t *testing.T) {
 	// Fakelogin function fails the test if Login failed
-	_, controller, _ := FakeLogin(t)
-	defer models.TruncateDatabase(controller.DB)
+	_, p, _ := FakeLogin(t)
+	defer models.TruncateDatabase(p.DB)
 }
 
 func TestLoginServiceError(t *testing.T) {
 	const errMsg = "example"
 	const errStatus = http.StatusUnauthorized
-	router, client, controller, w, address := setupLoginTest(t)
-	client.Engine.GET(controller.LoginServiceURL.Path, func(c *gin.Context) {
+	router, client, p, w, address := setupLoginTest(t)
+	client.Engine.GET(p.LoginServiceURL.Path, func(c *gin.Context) {
 		c.JSON(errStatus, gin.H{"error": errMsg})
 	})
 	r, _ := http.NewRequest("GET", address, nil)

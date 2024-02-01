@@ -9,7 +9,8 @@ import (
 )
 
 func TestHealthCheck(t *testing.T) {
-	router, _ := SetupTestRouter(t, nil)
+	p := SetupTestController(t, http.DefaultClient)
+	router := SetupTestRouter(t, p)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, httptest.NewRequest("GET", "/api/health_check", nil))
 	assert.Equal(t, http.StatusOK, w.Code)

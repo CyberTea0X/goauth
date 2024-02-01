@@ -15,19 +15,20 @@ import (
 func guestTestSetup(t *testing.T) (*models.ClientMock, *gin.Engine, *PublicController, *httptest.ResponseRecorder) {
 	gin.SetMode(gin.ReleaseMode)
 	client := models.NewClientMock()
-	router, controller := SetupTestRouter(t, client)
+	p := SetupTestController(t, client)
+	router := SetupTestRouter(t, p)
 	w := httptest.NewRecorder()
-	return client, router, controller, w
+	return client, router, p, w
 }
 
 func TestGuestSucceeds(t *testing.T) {
-	client, router, controller, w := guestTestSetup(t)
-	defer models.TruncateDatabase(controller.DB)
+	client, router, p, w := guestTestSetup(t)
+	defer models.TruncateDatabase(p.DB)
 	guest := models.Guest{
 		FullName: "Test",
 		Id:       1,
 	}
-	client.Engine.POST(controller.GuestServiceURL.Path, func(c *gin.Context) {
+	client.Engine.POST(p.GuestServiceURL.Path, func(c *gin.Context) {
 		c.JSON(http.StatusOK, &guest)
 	})
 	guestInput := GuestInput{
@@ -41,10 +42,10 @@ func TestGuestSucceeds(t *testing.T) {
 }
 
 func TestGuestInvalidJSON(t *testing.T) {
-	client, router, controller, w := guestTestSetup(t)
-	defer models.TruncateDatabase(controller.DB)
+	client, router, p, w := guestTestSetup(t)
+	defer models.TruncateDatabase(p.DB)
 
-	client.Engine.POST(controller.GuestServiceURL.Path, func(c *gin.Context) {
+	client.Engine.POST(p.GuestServiceURL.Path, func(c *gin.Context) {
 		c.Status(http.StatusBadRequest)
 	})
 
@@ -65,11 +66,11 @@ func TestGuestInvalidJSON(t *testing.T) {
 }
 
 func TestGuestServiceError(t *testing.T) {
-	client, router, controller, w := guestTestSetup(t)
-	defer models.TruncateDatabase(controller.DB)
+	client, router, p, w := guestTestSetup(t)
+	defer models.TruncateDatabase(p.DB)
 	const errMsg = "Unauthorized"
 	const status = http.StatusUnauthorized
-	client.Engine.POST(controller.GuestServiceURL.Path, func(c *gin.Context) {
+	client.Engine.POST(p.GuestServiceURL.Path, func(c *gin.Context) {
 		c.JSON(status, gin.H{"error": errMsg})
 	})
 	guestInput := GuestInput{

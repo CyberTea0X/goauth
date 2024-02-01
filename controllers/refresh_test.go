@@ -45,8 +45,8 @@ func generateTestRefresh(t *testing.T, refresh string, router *gin.Engine) *Refr
 }
 
 func TestRefreshSucceds(t *testing.T) {
-	l, controller, router := FakeLogin(t)
-	defer models.TruncateDatabase(controller.DB)
+	l, p, router := FakeLogin(t)
+	defer models.TruncateDatabase(p.DB)
 	refreshed := generateTestRefresh(t, l.RefreshToken, router)
 	r := generateTestRefresh(t, refreshed.RefreshToken, router)
 	if r.AccessToken == "" || r.RefreshToken == "" || r.ExpiresAt == 0 {
@@ -55,10 +55,10 @@ func TestRefreshSucceds(t *testing.T) {
 }
 
 // if controller or token is nil, token not added to query
-func testRequestRefresh(t *testing.T, router *gin.Engine, controller *PublicController, address string, token *token.RefreshToken) *http.Response {
+func testRequestRefresh(t *testing.T, router *gin.Engine, p *PublicController, address string, token *token.RefreshToken) *http.Response {
 	w := httptest.NewRecorder()
-	if token != nil && controller != nil {
-		tokenString, err := token.TokenString(controller.RefreshTokenCfg.Secret)
+	if token != nil && p != nil {
+		tokenString, err := token.TokenString(p.RefreshTokenCfg.Secret)
 		if err != nil {
 			t.Fatal("Failed to generate refresh token for testing")
 		}
@@ -78,7 +78,8 @@ func testRequestRefresh(t *testing.T, router *gin.Engine, controller *PublicCont
 }
 
 func TestRefreshNoToken(t *testing.T) {
-	router, _ := SetupTestRouter(t, nil)
+	p := SetupTestController(t, http.DefaultClient)
+	router := SetupTestRouter(t, p)
 	res := testRequestRefresh(t, router, nil, refreshPath, nil)
 	defer res.Body.Close()
 	err := models.ErrFromResponse(res)
@@ -90,9 +91,10 @@ func TestRefreshNoToken(t *testing.T) {
 }
 
 func TestRefreshExpired(t *testing.T) {
-	router, controller := SetupTestRouter(t, nil)
+	p := SetupTestController(t, http.DefaultClient)
+	router := SetupTestRouter(t, p)
 	claims := token.NewRefresh(123, 123, 123, "test", time.Now().Add(-time.Hour))
-	res := testRequestRefresh(t, router, controller, refreshPath, claims)
+	res := testRequestRefresh(t, router, p, refreshPath, claims)
 	defer res.Body.Close()
 	err := models.ErrFromResponse(res)
 	if err == nil {
@@ -103,9 +105,10 @@ func TestRefreshExpired(t *testing.T) {
 }
 
 func TestRefreshNotExists(t *testing.T) {
-	router, controller := SetupTestRouter(t, nil)
+	p := SetupTestController(t, http.DefaultClient)
+	router := SetupTestRouter(t, p)
 	claims := token.NewRefresh(123, 123, 123, "test", time.Now().Add(time.Hour))
-	res := testRequestRefresh(t, router, controller, refreshPath, claims)
+	res := testRequestRefresh(t, router, p, refreshPath, claims)
 	defer res.Body.Close()
 	err := models.ErrFromResponse(res)
 	if err == nil {
