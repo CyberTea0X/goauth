@@ -24,4 +24,4 @@ go build -o goauth
 
 Place the binary where you need it and then copy the `example.toml` file there.
 Rename `example.toml` to `config.toml`, configure this file, make sure mysql is running
-and you can start the server by running executable.
+and then you can start the server by running the executable.
