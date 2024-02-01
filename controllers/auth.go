@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/CyberTea0X/goauth/src/backend/models"
-	"github.com/CyberTea0X/goauth/src/backend/models/token"
+	"github.com/CyberTea0X/goauth/models"
+	"github.com/CyberTea0X/goauth/models/token"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/CyberTea0X/goauth/src/backend/models"
+	"github.com/CyberTea0X/goauth/models"
 	"github.com/gin-gonic/gin"
 )
 

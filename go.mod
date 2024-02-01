@@ -1,4 +1,4 @@
-module github.com/CyberTea0X/goauth/src/backend
+module github.com/CyberTea0X/goauth
 
 go 1.21.0
 

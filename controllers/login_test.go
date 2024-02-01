@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/CyberTea0X/goauth/src/backend/models"
+	"github.com/CyberTea0X/goauth/models"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )

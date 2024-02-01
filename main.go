@@ -7,10 +7,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/CyberTea0X/goauth/src/backend/controllers"
-	"github.com/CyberTea0X/goauth/src/backend/models"
+	"github.com/CyberTea0X/goauth/controllers"
+	"github.com/CyberTea0X/goauth/models"
 
-	// "github.com/CyberTea0X/goauth/src/backend/middlewares"
+	// "github.com/CyberTea0X/goauth/middlewares"
 	"github.com/gin-gonic/gin"
 )
 
