@@ -14,7 +14,7 @@ import (
 func ParseWithClaims(token string, claims jwt.Claims, secret string) (*jwt.Token, error) {
 	jwt, result := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(secret), nil
 	})
@@ -24,18 +24,20 @@ func ParseWithClaims(token string, claims jwt.Claims, secret string) (*jwt.Token
 	return jwt, result
 }
 
-// Extracts Token from query or request header
+// Extracts Token from query or "Authorization" request header
 func ExtractToken(c *gin.Context) (string, error) {
+	auth := c.Request.Header.Get("Authorization")
+	// Authorization usually starts on "Bearer", then comes single whitespace and then token string
+	authSplit := strings.Split(auth, " ")
+	fmt.Println(authSplit)
+	if (len(authSplit) == 2) && (authSplit[1] != "") {
+		return authSplit[1], nil
+	} else if auth != "" {
+		return auth, nil
+	}
 	token := c.Query("token")
-	if token != "" {
-		return token, nil
+	if token == "" {
+		return "", errors.New("token not found in request or request headers")
 	}
-	bearerToken := c.Request.Header.Get("Authorization")
-	if len(strings.Split(bearerToken, " ")) == 2 {
-		return strings.Split(bearerToken, " ")[1], nil
-	}
-	if bearerToken == "" {
-		return "", errors.New("Token not found in request or request headers")
-	}
-	return bearerToken, nil
+	return token, nil
 }
