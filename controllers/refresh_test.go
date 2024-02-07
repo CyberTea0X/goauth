@@ -93,7 +93,7 @@ func TestRefreshNoToken(t *testing.T) {
 func TestRefreshExpired(t *testing.T) {
 	p := SetupTestController(t, http.DefaultClient)
 	router := SetupTestRouter(t, p)
-	claims := token.NewRefresh(123, 123, 123, "test", time.Now().Add(-time.Hour))
+	claims := token.NewRefresh(123, 123, 123, []string{"test"}, time.Now().Add(-time.Hour))
 	res := testRequestRefresh(t, router, p, refreshPath, claims)
 	defer res.Body.Close()
 	err := models.ErrFromResponse(res)
@@ -107,7 +107,7 @@ func TestRefreshExpired(t *testing.T) {
 func TestRefreshNotExists(t *testing.T) {
 	p := SetupTestController(t, http.DefaultClient)
 	router := SetupTestRouter(t, p)
-	claims := token.NewRefresh(123, 123, 123, "test", time.Now().Add(time.Hour))
+	claims := token.NewRefresh(123, 123, 123, []string{"test"}, time.Now().Add(time.Hour))
 	res := testRequestRefresh(t, router, p, refreshPath, claims)
 	defer res.Body.Close()
 	err := models.ErrFromResponse(res)

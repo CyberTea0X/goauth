@@ -10,7 +10,7 @@ import (
 
 	"github.com/CyberTea0X/goauth/models"
 	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func SetupTestRouter(t *testing.T, controller *PublicController) *gin.Engine {
@@ -56,12 +56,18 @@ func FakeLogin(t *testing.T) (*LoginOutput, *PublicController, *gin.Engine) {
 	w := httptest.NewRecorder()
 
 	client.Engine.GET(controller.LoginServiceURL.Path, func(c *gin.Context) {
-		c.JSON(http.StatusOK, models.User{Id: 1})
+		res := new(models.LoginServiceResponce)
+		id := new(int64)
+		*id = 1
+		res.Id = id
+		res.Roles = []string{"test"}
+
+		c.JSON(http.StatusOK, res)
 	})
 
 	r, _ := http.NewRequest("GET", u.String(), nil)
 	router.ServeHTTP(w, r)
-	assert.Equal(t, http.StatusOK, w.Code)
+	require.Equal(t, http.StatusOK, w.Code)
 	bodyRaw, err := io.ReadAll(w.Body)
 	if err != nil {
 		t.Fatal(err)

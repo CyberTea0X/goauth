@@ -13,7 +13,7 @@ type RefreshToken struct {
 	TokenID  int64    `json:"token_id"`
 	DeviceID uint     `json:"device_id"`
 	UserID   int64    `json:"user_id"`
-	Roles    []string `json:"role"`
+	Roles    []string `json:"roles"`
 }
 
 func NewRefresh(tokenId int64, deviceId uint, userId int64, roles []string, expiresAt time.Time) *RefreshToken {
@@ -49,7 +49,7 @@ func (c *RefreshToken) TokenString(secret string) (string, error) {
 
 // Inserts row that identifies token into the database (not token string)
 func (t *RefreshToken) InsertToDb(db *sql.DB) (int64, error) {
-	const query = "INSERT INTO refresh_tokens (device_id, expires_at, user_id, role) VALUES (?,?,?,?)"
+	const query = "INSERT INTO refresh_tokens (device_id, expires_at, user_id) VALUES (?,?,?)"
 	res, err := db.Exec(query, t.DeviceID, t.ExpiresAt.Unix(), t.UserID)
 	if err != nil {
 		return 0, err
@@ -65,8 +65,8 @@ func (t *RefreshToken) Exists(db *sql.DB) (bool, error) {
 	var exists bool
 	const query = "" +
 		"SELECT EXISTS(SELECT * FROM refresh_tokens " +
-		"WHERE id=? AND user_id=? AND device_id=? AND expires_at=? AND role=?)"
-	res, err := db.Query(query, t.TokenID, t.UserID, t.DeviceID, t.ExpiresAt.Unix(), t.Roles)
+		"WHERE id=? AND user_id=? AND device_id=? AND expires_at=?)"
+	res, err := db.Query(query, t.TokenID, t.UserID, t.DeviceID, t.ExpiresAt.Unix())
 	if err != nil {
 		return false, err
 	}
@@ -80,8 +80,8 @@ func (t *RefreshToken) Exists(db *sql.DB) (bool, error) {
 func (t *RefreshToken) FindID(db *sql.DB) (int64, bool, error) {
 	const query = "" +
 		"SELECT id FROM refresh_tokens " +
-		"WHERE user_id=? AND device_id=? AND role=?"
-	res, err := db.Query(query, t.UserID, t.DeviceID, t.Roles)
+		"WHERE user_id=? AND device_id=?"
+	res, err := db.Query(query, t.UserID, t.DeviceID)
 	if err != nil {
 		return 0, false, err
 	}
@@ -95,8 +95,8 @@ func (t *RefreshToken) FindID(db *sql.DB) (int64, bool, error) {
 
 // Updates expiredAt field of token in the database
 func (t *RefreshToken) Update(db *sql.DB, expiresAt uint64) (*RefreshToken, error) {
-	const q = "UPDATE refresh_tokens SET expires_at=? WHERE id=? AND user_id =? AND device_id =? AND role=?"
-	_, err := db.Exec(q, expiresAt, t.TokenID, t.UserID, t.DeviceID, t.Roles)
+	const q = "UPDATE refresh_tokens SET expires_at=? WHERE id=? AND user_id =? AND device_id =?"
+	_, err := db.Exec(q, expiresAt, t.TokenID, t.UserID, t.DeviceID)
 	return t, err
 }
 

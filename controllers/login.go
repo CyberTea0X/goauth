@@ -20,10 +20,10 @@ type LoginInput struct {
 }
 
 type LoginOutput struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-	ExpiresAt    int64  `json:"expires_at"`
-	Role         string `json:"role"`
+	AccessToken  string   `json:"access_token"`
+	RefreshToken string   `json:"refresh_token"`
+	ExpiresAt    int64    `json:"expires_at"`
+	Roles        []string `json:"role"`
 }
 
 // Function that is responsible for user authorization.
@@ -50,7 +50,7 @@ func (p *PublicController) Login(c *gin.Context) {
 	}
 
 	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.LifespanHour))
-	refreshClaims := token.NewRefresh(-1, input.DeviceId, user.Id, user.Role, expiresAt)
+	refreshClaims := token.NewRefresh(-1, input.DeviceId, user.Id, user.Roles, expiresAt)
 
 	refreshId, err := refreshClaims.InsertOrUpdate(p.DB)
 
@@ -70,7 +70,7 @@ func (p *PublicController) Login(c *gin.Context) {
 	}
 
 	expiresAt = time.Now().Add(time.Minute * time.Duration(p.AccessTokenCfg.LifespanMinute))
-	accessClaims := token.NewAccess(user.Id, user.Role, expiresAt)
+	accessClaims := token.NewAccess(user.Id, user.Roles, expiresAt)
 	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 
 	if err != nil {
@@ -83,7 +83,7 @@ func (p *PublicController) Login(c *gin.Context) {
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		ExpiresAt:    expiresAt.Unix(),
-		Role:         user.Role,
+		Roles:        user.Roles,
 	})
 
 }

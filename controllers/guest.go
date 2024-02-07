@@ -23,7 +23,7 @@ type GuestOutput struct {
 	Role         string `json:"role" example:"root"`
 }
 
-const ROLE = "guest"
+const GUEST_ROLE = "guest"
 
 // Guest authorizes user as guest
 //
@@ -56,7 +56,7 @@ func (p *PublicController) Guest(c *gin.Context) {
 	}
 
 	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.LifespanHour))
-	refreshClaims := token.NewRefresh(-1, input.DeviceId, guest.Id, ROLE, expiresAt)
+	refreshClaims := token.NewRefresh(-1, input.DeviceId, guest.Id, []string{GUEST_ROLE}, expiresAt)
 
 	refreshId, err := refreshClaims.InsertOrUpdate(p.DB)
 	if err != nil {
@@ -75,7 +75,7 @@ func (p *PublicController) Guest(c *gin.Context) {
 	}
 
 	expiresAt = time.Now().Add(time.Minute * time.Duration(p.AccessTokenCfg.LifespanMinute))
-	accessClaims := token.NewAccess(guest.Id, ROLE, expiresAt)
+	accessClaims := token.NewAccess(guest.Id, []string{GUEST_ROLE}, expiresAt)
 	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 
 	if err != nil {
@@ -88,7 +88,7 @@ func (p *PublicController) Guest(c *gin.Context) {
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		ExpiresAt:    expiresAt.Unix(),
-		Role:         ROLE,
+		Role:         GUEST_ROLE,
 	})
 
 }

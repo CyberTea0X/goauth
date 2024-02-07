@@ -8,15 +8,22 @@ import (
 )
 
 type User struct {
-	Id       int64  `json:"id"`
-	Username string `json:"username"` // not null
-	Password string `json:"password"` // not null
-	Email    string `json:"email"`    // not null unique
-	Role     string `json:"role"`     // not null
+	Id       int64
+	Username string
+	Password string
+	Email    string
+	Roles    []string
 }
 
+type LoginServiceResponce struct {
+	Id    *int64   `json:"id"`
+	Roles []string `json:"roles"`
+}
+
+// Should return *User struct with all fields filled.
+//
+// returns an error if there are no roles or ID in the external service response
 func LoginUser(client HTTPClient, adress url.URL, username string, password string, email string) (*User, error) {
-	user := new(User)
 	q := adress.Query()
 	q.Set("username", username)
 	q.Set("password", password)
@@ -35,18 +42,23 @@ func LoginUser(client HTTPClient, adress url.URL, username string, password stri
 	}
 	rawBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		return nil, errors.Join(errors.New("Error reading login responce body"), err)
+		return nil, errors.Join(errors.New("error reading login responce body"), err)
 	}
-	if err := json.Unmarshal(rawBody, user); err != nil {
-		return nil, errors.Join(errors.New("Error unmarshalling login responce to User struct"), err)
+	res := new(LoginServiceResponce)
+	if err := json.Unmarshal(rawBody, res); err != nil {
+		return nil, errors.Join(errors.New("error unmarshalling login responce to User struct"), err)
 	}
+	if res.Id == nil {
+		return nil, errors.New("no id specified in external service responce")
+	}
+	if res.Roles == nil {
+		return nil, errors.New("no roles specified in external service responce")
+	}
+	user := new(User)
+	user.Id = *res.Id
+	user.Roles = res.Roles
 	user.Username = username
 	user.Password = password
 	user.Email = email
 	return user, nil
-}
-
-func (u *User) PrepareGive() {
-	u.Password = ""
-	u.Email = ""
 }

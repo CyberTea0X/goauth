@@ -26,7 +26,7 @@ func authTestSetup(t *testing.T) (*gin.Engine, *PublicController, *http.Request,
 func TestAuthSucceed(t *testing.T) {
 	router, p, req, w := authTestSetup(t)
 
-	accessClaims := token.NewAccess(123, "guest", time.Now().Add(time.Hour))
+	accessClaims := token.NewAccess(123, []string{GUEST_ROLE}, time.Now().Add(time.Hour))
 	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 
 	if err != nil {
@@ -50,7 +50,7 @@ func TestAuthNoToken(t *testing.T) {
 
 func TestAuthInvalidToken(t *testing.T) {
 	router, p, req, w := authTestSetup(t)
-	accessClaims := token.NewAccess(123, "guest", time.Now().Add(time.Hour))
+	accessClaims := token.NewAccess(123, []string{GUEST_ROLE}, time.Now().Add(time.Hour))
 	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret + "123")
 
 	if err != nil {
@@ -67,7 +67,7 @@ func TestAuthInvalidToken(t *testing.T) {
 
 func TestAuthTokenExpired(t *testing.T) {
 	router, p, req, w := authTestSetup(t)
-	accessClaims := token.NewAccess(123, "guest", time.Now().Add(-time.Hour))
+	accessClaims := token.NewAccess(123, []string{GUEST_ROLE}, time.Now().Add(-time.Hour))
 	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 
 	if err != nil {
