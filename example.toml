@@ -13,12 +13,14 @@ database = "goauth"
 [tokens]
 
 [tokens.access]
+# also available: lifespan_hour, lifespan_day
+# all lifetimes are summarized, so you can specify multiple
 lifespan_minute = 15
-secret = "secret1"
+secret = "FirstSuperMegaSecretKeyThatNoOneKnows!"
 
 [tokens.refresh]
-lifespan_hour = 8790
-secret = "secret2"
+lifespan_day = 30
+secret = "SecondSuperMegaSecretKeyThatNoOneKnows!"
 
 # External services that goauth uses
 [services]
