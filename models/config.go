@@ -3,33 +3,39 @@ package models
 import (
 	"errors"
 	"fmt"
-	"os"
-
+	"github.com/go-playground/validator/v10"
 	"github.com/pelletier/go-toml/v2"
+	"os"
 )
 
+type AppConfig struct {
+	Port string `validate:"required"`
+	// http.Client timeout
+	TimeoutSeconds uint `toml:"timeout_seconds" validate:"required"`
+}
+
 type AccessTokenCfg struct {
-	Secret         string
-	LifespanMinute uint `toml:"lifespan_minute"`
+	Secret         string `validate:"required"`
+	LifespanMinute uint   `toml:"lifespan_minute" validate:"required"`
 }
 
 type RefreshTokenCfg struct {
-	Secret       string
-	LifespanHour uint `toml:"lifespan_hour"`
+	Secret       string `validate:"required"`
+	LifespanHour uint   `toml:"lifespan_hour" validate:"required"`
 }
 
 type TokensCfg struct {
-	Access  AccessTokenCfg
-	Refresh RefreshTokenCfg
+	Access  AccessTokenCfg  `validate:"required"`
+	Refresh RefreshTokenCfg `validate:"required"`
 }
 
 type DatabaseConfig struct {
-	Driver   string
-	Host     string
-	User     string
-	Password string
-	Name     string `toml:"database"`
-	Port     string
+	Driver   string `validate:"required"`
+	Host     string `validate:"required"`
+	User     string `validate:"required"`
+	Password string `validate:"required"`
+	Name     string `toml:"database" validate:"required"`
+	Port     string `validate:"required"`
 }
 
 func (c *DatabaseConfig) GetUrl() string {
@@ -37,32 +43,34 @@ func (c *DatabaseConfig) GetUrl() string {
 }
 
 type GuestService struct {
-	Host string
-	Port string
-	Path string
+	Host string `validate:"required"`
+	Port string `validate:"required"`
+	Path string `validate:"required"`
 }
 
 type LoginService struct {
-	Host string
-	Port string
-	Path string
+	Host string `validate:"required"`
+	Port string `validate:"required"`
+	Path string `validate:"required"`
 }
 
 type ExternalServicesConfig struct {
-	Guest GuestService
-	Login LoginService
+	Guest GuestService `validate:"required"`
+	Login LoginService `validate:"required"`
 }
 
 type TomlConfig struct {
-	Database DatabaseConfig
-	Tokens   TokensCfg
-	Services ExternalServicesConfig
+	App      AppConfig              `validate:"required"`
+	Database DatabaseConfig         `validate:"required"`
+	Tokens   TokensCfg              `validate:"required"`
+	Services ExternalServicesConfig `validate:"required"`
 }
 
 func (*TomlConfig) Validate() error {
 	return nil
 }
 
+// Parses and validates config
 func ParseConfig(filename string) (*TomlConfig, error) {
 	configFile, err := os.Open(filename)
 
@@ -79,6 +87,11 @@ func ParseConfig(filename string) (*TomlConfig, error) {
 			return nil, errors.Join(errors.New("Failed to parse config file"), err)
 		}
 		return nil, errors.Join(fmt.Errorf("Failed to parse config file\n%s", details.String()))
+	}
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	err = validate.Struct(tomlConfig)
+	if err != nil {
+		return nil, errors.Join(errors.New("Failed to parse config file"), err)
 	}
 
 	return tomlConfig, nil

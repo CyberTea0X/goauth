@@ -48,11 +48,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	client := &http.Client{Timeout: time.Second * 15}
+	client := &http.Client{Timeout: time.Second * time.Duration(config.App.TimeoutSeconds)}
 
 	controller := controllers.NewController(config.Tokens, config.Services, client, db)
 
-	port := "8080"
+	port := config.App.Port
 	fmt.Println("Auth server starting on port", port)
 	controllers.SetupRouter(controller).Run(":" + port)
 }
