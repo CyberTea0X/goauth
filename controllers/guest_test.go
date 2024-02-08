@@ -25,14 +25,14 @@ func TestGuestSucceeds(t *testing.T) {
 	client, router, p, w := guestTestSetup(t)
 	defer models.TruncateDatabase(p.DB)
 	guest := models.Guest{
-		FullName: "Test",
-		Id:       1,
+		Name: "Test",
+		Id:   1,
 	}
 	client.Engine.POST(p.GuestServiceURL.Path, func(c *gin.Context) {
 		c.JSON(http.StatusOK, &guest)
 	})
 	guestInput := GuestInput{
-		FullName: guest.FullName,
+		FullName: guest.Name,
 		DeviceId: 1,
 	}
 	jsonInput, _ := json.Marshal(guestInput)

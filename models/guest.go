@@ -9,14 +9,14 @@ import (
 )
 
 type Guest struct {
-	Id       int64  `json:"id,omitempty"`
-	FullName string `json:"full_name,omitempty"`
+	Id   int64  `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
 }
 
 // model.ExternalServiceError error returned if error is parsed from external service response
 func RegisterGuest(fullname string, adress url.URL, client HTTPClient) (*Guest, error) {
 	guest := new(Guest)
-	guest.FullName = fullname
+	guest.Name = fullname
 	requestBody, err := json.Marshal(guest)
 	if err != nil {
 		return nil, errors.Join(errors.New("Error marshalling guest struct to json"), err)
