@@ -16,13 +16,6 @@ const refreshTableDDL = "" +
 	"UNIQUE KEY `refresh_tokens_device_id_IDX` (`device_id`,`user_id`,`expires_at`) USING BTREE" +
 	") ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;"
 
-const guestsTableDDL = "" +
-	"CREATE TABLE IF NOT EXISTS `guests` (" +
-	"`id` int(10) unsigned NOT NULL AUTO_INCREMENT," +
-	"`full_name` varchar(100) NOT NULL," +
-	"PRIMARY KEY (`id`)" +
-	") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;"
-
 func SetupDatabase(config *DatabaseConfig) (*sql.DB, error) {
 	db, err := sql.Open(config.Driver, config.GetUrl())
 
@@ -33,9 +26,6 @@ func SetupDatabase(config *DatabaseConfig) (*sql.DB, error) {
 	if _, err = db.Exec(refreshTableDDL); err != nil {
 		return nil, errors.Join(errors.New("Failed to create refresh token table: "), err)
 	}
-	if _, err = db.Exec(refreshTableDDL); err != nil {
-		return nil, errors.Join(errors.New("Failed to create guests table: "), err)
-	}
 
 	return db, nil
 }
@@ -43,9 +33,6 @@ func SetupDatabase(config *DatabaseConfig) (*sql.DB, error) {
 func TruncateDatabase(db *sql.DB) error {
 	if _, err := db.Exec("TRUNCATE TABLE refresh_tokens"); err != nil {
 		return errors.Join(errors.New("error clearing refresh token table"), err)
-	}
-	if _, err := db.Exec("TRUNCATE TABLE guests"); err != nil {
-		return errors.Join(errors.New("error clearing guests table"), err)
 	}
 	return nil
 }
