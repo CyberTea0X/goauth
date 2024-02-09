@@ -19,7 +19,6 @@ type GuestOutput struct {
 	AccessToken  string `json:"access_token" example:"token"`
 	RefreshToken string `json:"refresh_token" example:"token"`
 	ExpiresAt    int64  `json:"expires_at" example:"244534234"`
-	Role         string `json:"role" example:"root"`
 }
 
 const GUEST_ROLE = "guest"
@@ -87,7 +86,6 @@ func (p *PublicController) Guest(c *gin.Context) {
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		ExpiresAt:    expiresAt.Unix(),
-		Role:         GUEST_ROLE,
 	})
 
 }
