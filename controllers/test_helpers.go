@@ -43,7 +43,7 @@ func FakeLogin(t *testing.T) (*LoginOutput, *PublicController, *gin.Engine) {
 	client := models.NewClientMock()
 	controller := SetupTestController(t, client)
 	router := SetupTestRouter(t, controller)
-	u, err := url.Parse("/api/login")
+	u, err := url.Parse("/v1/login")
 	if err != nil {
 		t.Fatal(err)
 	}

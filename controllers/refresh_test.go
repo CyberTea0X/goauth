@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const refreshPath = "/api/refresh"
+const refreshPath = "/v1/refresh"
 
 // Generates refresh token for testing purposes
 func generateTestRefresh(t *testing.T, refresh string, router *gin.Engine) *RefreshOutput {
