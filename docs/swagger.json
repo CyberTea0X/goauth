@@ -14,8 +14,26 @@
     "host": "localhost:8080",
     "basePath": "/api",
     "paths": {
-        "/guest": {
+        "/auth": {
             "get": {
+                "description": "Check if request token is valid and user is authorized",
+                "summary": "Authenticate request",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/guest": {
+            "post": {
                 "description": "authorizes user as guest",
                 "consumes": [
                     "application/json"
@@ -61,10 +79,6 @@
                 "refresh_token": {
                     "type": "string",
                     "example": "token"
-                },
-                "role": {
-                    "type": "string",
-                    "example": "root"
                 }
             }
         }

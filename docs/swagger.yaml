@@ -11,9 +11,6 @@ definitions:
       refresh_token:
         example: token
         type: string
-      role:
-        example: root
-        type: string
     type: object
 externalDocs:
   description: OpenAPI
@@ -29,8 +26,20 @@ info:
   title: Golang Authentication microservice
   version: "0.01"
 paths:
-  /guest:
+  /auth:
     get:
+      description: Check if request token is valid and user is authorized
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Authenticate request
+  /guest:
+    post:
       consumes:
       - application/json
       description: authorizes user as guest

@@ -10,6 +10,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// Checks if token specified in Authorization header is valid
 func (p *PublicController) Auth(c *gin.Context) {
 	accessToken, err := token.ExtractToken(c)
 	if err != nil {

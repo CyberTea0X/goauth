@@ -16,22 +16,14 @@ type GuestInput struct {
 }
 
 type GuestOutput struct {
-	AccessToken  string `json:"access_token" example:"token"`
-	RefreshToken string `json:"refresh_token" example:"token"`
-	ExpiresAt    int64  `json:"expires_at" example:"244534234"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresAt    int64  `json:"expires_at"`
 }
 
 const GUEST_ROLE = "guest"
 
-// Guest authorizes user as guest
-//
-//	@Summary		guest authorization
-//	@Description	authorizes user as guest
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	{object}	GuestOutput
-//	@Schemes
-//	@Router	/guest [post]
+// Guest registers new guest and returns tokens
 func (p *PublicController) Guest(c *gin.Context) {
 
 	var input GuestInput

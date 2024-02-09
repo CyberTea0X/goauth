@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Structure describing the json fields that should be in the login request
 type LoginInput struct {
 	Username string `form:"username"`
 	Password string `form:"password" binding:"required"`
@@ -26,8 +25,9 @@ type LoginOutput struct {
 }
 
 // Function that is responsible for user authorization.
+//
 // In response to a successful authorization request, returns
-// Access Token and Refresh Token, as well as the time of death of the Access Token
+// access token and refresh token, as well as the time of death of the access token
 func (p *PublicController) Login(c *gin.Context) {
 
 	var input LoginInput
