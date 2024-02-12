@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/CyberTea0X/goauth/models"
 	"github.com/CyberTea0X/goauth/models/token"
@@ -45,7 +46,7 @@ func (p *PublicController) Guest(c *gin.Context) {
 		return
 	}
 
-	expiresAt := p.RefreshTokenCfg.ExpiresAt()
+	expiresAt := time.Now().Add(p.RefreshTokenCfg.Lifespan())
 	refreshClaims := token.NewRefresh(-1, input.DeviceId, guest.Id, []string{GUEST_ROLE}, expiresAt)
 
 	refreshId, err := refreshClaims.InsertOrUpdate(p.DB)
@@ -64,7 +65,7 @@ func (p *PublicController) Guest(c *gin.Context) {
 		return
 	}
 
-	expiresAt = p.AccessTokenCfg.ExpiresAt()
+	expiresAt = time.Now().Add(p.AccessTokenCfg.Lifespan())
 	accessClaims := token.NewAccess(guest.Id, []string{GUEST_ROLE}, expiresAt)
 	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 

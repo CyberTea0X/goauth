@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/CyberTea0X/goauth/models"
 	"github.com/CyberTea0X/goauth/models/token"
@@ -48,7 +49,7 @@ func (p *PublicController) Refresh(c *gin.Context) {
 		return
 	}
 
-	expiresAt := p.RefreshTokenCfg.ExpiresAt()
+	expiresAt := time.Now().Add(p.RefreshTokenCfg.Lifespan())
 	refreshClaims.ExpiresAt = jwt.NewNumericDate(expiresAt)
 	expiresUnix := refreshClaims.ExpiresAt.Unix()
 
@@ -68,7 +69,7 @@ func (p *PublicController) Refresh(c *gin.Context) {
 		return
 	}
 
-	expiresAt = p.AccessTokenCfg.ExpiresAt()
+	expiresAt = time.Now().Add(p.AccessTokenCfg.Lifespan())
 	accessClaims := token.NewAccess(refreshClaims.UserID, refreshClaims.Roles, expiresAt)
 	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 

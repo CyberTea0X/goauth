@@ -16,7 +16,7 @@ type AppConfig struct {
 	TimeoutSeconds uint `toml:"timeout_seconds" validate:"required"`
 }
 
-type Lifespan struct {
+type LifespanCfg struct {
 	LifespanMinute uint `toml:"lifespan_minute"`
 	LifespanHour   uint `toml:"lifespan_hour"`
 	LifespanDay    uint `toml:"lifespan_day"`
@@ -24,25 +24,25 @@ type Lifespan struct {
 }
 
 // Just calculates time.Now() + lifespan
-func (c *Lifespan) ExpiresAt() time.Time {
+func (c *LifespanCfg) Lifespan() time.Duration {
 	if c.lifespan != nil {
-		return time.Now().Add(*c.lifespan)
+		return *c.lifespan
 	}
 	lifespan := new(time.Duration)
 	*lifespan = time.Minute * time.Duration(c.LifespanMinute)
 	*lifespan += time.Hour * time.Duration(c.LifespanHour)
 	*lifespan += time.Hour * time.Duration(c.LifespanDay) * 24
 	c.lifespan = lifespan
-	return time.Now().Add(*lifespan)
+	return *lifespan
 }
 
 type AccessTokenCfg struct {
-	Lifespan
+	LifespanCfg
 	Secret string `validate:"required"`
 }
 
 type RefreshTokenCfg struct {
-	Lifespan
+	LifespanCfg
 	Secret string `validate:"required"`
 }
 
