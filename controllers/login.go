@@ -39,10 +39,14 @@ func (p *PublicController) Login(c *gin.Context) {
 	user, err := models.LoginUser(p.Client, p.LoginServiceURL, input.Username, input.Password, input.Email)
 
 	if err != nil {
-		targetErr := new(models.ExternalServiceError)
-		if errors.As(err, &targetErr) {
-			c.JSON(targetErr.Status, models.ErrToMap(targetErr))
+		externalErr := new(models.ExternalServiceError)
+		serviceErr := new(models.ConstantError)
+		if errors.As(err, &externalErr) {
+			c.JSON(externalErr.Status, models.ErrToMap(externalErr))
+		} else if errors.As(err, &serviceErr) {
+			c.JSON(http.StatusBadRequest, models.ErrToMap(err))
 		} else {
+			log.Println(err)
 			c.Status(http.StatusInternalServerError)
 		}
 		return

@@ -11,6 +11,7 @@ import (
 	"github.com/CyberTea0X/goauth/models"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func SetupTestRouter(t *testing.T, controller *PublicController) *gin.Engine {
@@ -47,20 +48,27 @@ func FakeLogin(t *testing.T) (*LoginOutput, *PublicController, *gin.Engine) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	pw := "PASSWORD"
 	q := u.Query()
 	q.Add("username", "test")
-	q.Add("password", "PASSWORD")
+	q.Add("password", pw)
 	q.Add("email", "test@example.com")
 	q.Add("device_id", "123")
 	u.RawQuery = q.Encode()
 	w := httptest.NewRecorder()
 
 	client.Engine.GET(controller.LoginServiceURL.Path, func(c *gin.Context) {
-		res := new(models.LoginServiceResponce)
+		res := new(models.LoginResponce)
 		id := new(int64)
 		*id = 1
 		res.Id = id
 		res.Roles = []string{"test"}
+		res.HashAlg = "bcrypt"
+		rawPassword, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
+		res.PasswordHash = string(rawPassword)
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		c.JSON(http.StatusOK, res)
 	})
