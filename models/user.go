@@ -37,7 +37,7 @@ type LoginRequest struct {
 func LoginUser(client HTTPClient, adress url.URL, username string, password string, email string) (*User, error) {
 	q := adress.Query()
 	req := LoginRequest{Username: username, Email: password}
-	q.Set("username", req.Username)
+	q.Set("login", req.Username)
 	q.Set("email", req.Email)
 	adress.RawQuery = q.Encode()
 	r, err := client.Get(adress.String())
