@@ -28,7 +28,7 @@ func (p *PublicController) Refresh(c *gin.Context) {
 	refreshClaims, err := token.RefreshFromString(inputToken, p.RefreshTokenCfg.Secret)
 
 	if errors.Is(err, jwt.ErrTokenExpired) {
-		c.JSON(http.StatusUnauthorized, models.ErrToMap(models.ErrTokenExpired))
+		c.JSON(http.StatusBadRequest, models.ErrToMap(models.ErrTokenExpired))
 		return
 	}
 
