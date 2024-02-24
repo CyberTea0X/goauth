@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"testing"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -24,6 +25,6 @@ func TestDatabase(t *testing.T) {
 	err = db.Ping()
 
 	if err != nil {
-		t.Error(errors.Join(errors.New("error connecting to the database"), err))
+		t.Error(errors.Join(fmt.Errorf("error connecting to the database. URL: %s", config.Database.GetUrl()), err))
 	}
 }
