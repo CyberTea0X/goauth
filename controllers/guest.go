@@ -12,7 +12,7 @@ import (
 )
 
 type GuestInput struct {
-	FullName string `json:"full_name" binding:"required"`
+	Name     string `json:"name" binding:"required"`
 	DeviceId uint   `json:"device_id" binding:"required"`
 }
 
@@ -34,7 +34,7 @@ func (p *PublicController) Guest(c *gin.Context) {
 		return
 	}
 
-	guest, err := models.RegisterGuest(input.FullName, p.GuestServiceURL, p.Client)
+	guest, err := models.RegisterGuest(input.Name, p.GuestServiceURL, p.Client)
 
 	if err != nil {
 		targetErr := new(models.ExternalServiceError)

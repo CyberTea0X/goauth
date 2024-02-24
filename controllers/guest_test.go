@@ -32,7 +32,7 @@ func TestGuestSucceeds(t *testing.T) {
 		c.JSON(http.StatusOK, &guest)
 	})
 	guestInput := GuestInput{
-		FullName: guest.Name,
+		Name:     guest.Name,
 		DeviceId: 1,
 	}
 	jsonInput, _ := json.Marshal(guestInput)
@@ -75,7 +75,7 @@ func TestGuestServiceError(t *testing.T) {
 		c.JSON(status, gin.H{"error": errMsg})
 	})
 	guestInput := GuestInput{
-		FullName: "Guest",
+		Name:     "Guest",
 		DeviceId: 1,
 	}
 

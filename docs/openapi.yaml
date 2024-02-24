@@ -42,7 +42,7 @@ components:
     GuestInput:
       type: object
       properties:
-        full_name:
+        name:
           type: string
           example: "Dulin Ivan Ivanovitch"
         device_id:
