@@ -12,28 +12,19 @@ import (
 )
 
 type GuestInput struct {
-	FullName string `json:"full_name" binding:"required"`
+	Name     string `json:"name" binding:"required"`
 	DeviceId uint   `json:"device_id" binding:"required"`
 }
 
 type GuestOutput struct {
-	AccessToken  string `json:"access_token" example:"token"`
-	RefreshToken string `json:"refresh_token" example:"token"`
-	ExpiresAt    int64  `json:"expires_at" example:"244534234"`
-	Role         string `json:"role" example:"root"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresAt    int64  `json:"expires_at"`
 }
 
 const GUEST_ROLE = "guest"
 
-// Guest authorizes user as guest
-//
-//	@Summary		guest authorization
-//	@Description	authorizes user as guest
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	{object}	GuestOutput
-//	@Schemes
-//	@Router	/guest [post]
+// Guest registers new guest and returns tokens
 func (p *PublicController) Guest(c *gin.Context) {
 
 	var input GuestInput
@@ -43,7 +34,7 @@ func (p *PublicController) Guest(c *gin.Context) {
 		return
 	}
 
-	guest, err := models.RegisterGuest(input.FullName, p.GuestServiceURL, p.Client)
+	guest, err := models.RegisterGuest(input.Name, p.GuestServiceURL, p.Client)
 
 	if err != nil {
 		targetErr := new(models.ExternalServiceError)
@@ -55,7 +46,7 @@ func (p *PublicController) Guest(c *gin.Context) {
 		return
 	}
 
-	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.LifespanHour))
+	expiresAt := time.Now().Add(p.RefreshTokenCfg.Lifespan())
 	refreshClaims := token.NewRefresh(-1, input.DeviceId, guest.Id, []string{GUEST_ROLE}, expiresAt)
 
 	refreshId, err := refreshClaims.InsertOrUpdate(p.DB)
@@ -74,7 +65,7 @@ func (p *PublicController) Guest(c *gin.Context) {
 		return
 	}
 
-	expiresAt = time.Now().Add(time.Minute * time.Duration(p.AccessTokenCfg.LifespanMinute))
+	expiresAt = time.Now().Add(p.AccessTokenCfg.Lifespan())
 	accessClaims := token.NewAccess(guest.Id, []string{GUEST_ROLE}, expiresAt)
 	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 
@@ -88,7 +79,6 @@ func (p *PublicController) Guest(c *gin.Context) {
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		ExpiresAt:    expiresAt.Unix(),
-		Role:         GUEST_ROLE,
 	})
 
 }

@@ -1,0 +1,82 @@
+openapi: 3.1.1
+info:
+  title: Example external service that goauth uses
+  description: Some profile service
+  version: 1.0.0
+servers:
+  - url: "/api"
+components:
+  schemas:
+    Role:
+      type: string
+      description: "Any role All roles are specified by external service"
+      example: "teacher"
+    GuestOutput:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "unique guest user ID"
+    GuestInput:
+      type: object
+      properties:
+        name:
+          type: string
+          description: "guest name"
+          example: "Ivanov Ivan Ivanovitch"
+    LoginResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+        password:
+          type: string
+          description: "Password hash"
+          example: "qwerty123"
+        alg:
+          type: string
+          description: "Password hashing algorithm"
+          example: "bcrypt"
+paths:
+  /register:
+    post:
+      operationId: registerUser
+      description: Registers user (or just guest)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuestInput'
+      responses:
+        200:
+          description: "Successfully registered a new guest"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuestOutput'
+  /login:
+    get:
+      operationId: loginUser
+      description: Retrieves user info. Unsafe, so login endpoint must be private
+      parameters:
+        - in: query
+          name: login
+          schema:
+            type: string
+            example: "CyberTea"
+        - in: query
+          name: email
+          schema:
+            type: string
+            example: "example@example.com"
+      responses:
+        200:
+          description: "Got user information"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'

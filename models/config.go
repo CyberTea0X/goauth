@@ -3,9 +3,11 @@ package models
 import (
 	"errors"
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/pelletier/go-toml/v2"
-	"os"
 )
 
 type AppConfig struct {
@@ -14,14 +16,34 @@ type AppConfig struct {
 	TimeoutSeconds uint `toml:"timeout_seconds" validate:"required"`
 }
 
+type LifespanCfg struct {
+	LifespanMinute uint `toml:"lifespan_minute"`
+	LifespanHour   uint `toml:"lifespan_hour"`
+	LifespanDay    uint `toml:"lifespan_day"`
+	lifespan       *time.Duration
+}
+
+// Just calculates time.Now() + lifespan
+func (c *LifespanCfg) Lifespan() time.Duration {
+	if c.lifespan != nil {
+		return *c.lifespan
+	}
+	lifespan := new(time.Duration)
+	*lifespan = time.Minute * time.Duration(c.LifespanMinute)
+	*lifespan += time.Hour * time.Duration(c.LifespanHour)
+	*lifespan += time.Hour * time.Duration(c.LifespanDay) * 24
+	c.lifespan = lifespan
+	return *lifespan
+}
+
 type AccessTokenCfg struct {
-	Secret         string `validate:"required"`
-	LifespanMinute uint   `toml:"lifespan_minute" validate:"required"`
+	LifespanCfg
+	Secret string `validate:"required"`
 }
 
 type RefreshTokenCfg struct {
-	Secret       string `validate:"required"`
-	LifespanHour uint   `toml:"lifespan_hour" validate:"required"`
+	LifespanCfg
+	Secret string `validate:"required"`
 }
 
 type TokensCfg struct {

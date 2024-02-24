@@ -19,7 +19,7 @@ func authTestSetup(t *testing.T) (*gin.Engine, *PublicController, *http.Request,
 	router := SetupTestRouter(t, p)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/api/auth", nil)
+	req, _ := http.NewRequest("GET", "/v1/auth", nil)
 	return router, p, req, w
 }
 

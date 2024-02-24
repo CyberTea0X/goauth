@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const loginPath = "/api/login"
+const loginPath = "/v1/login"
 
 func setupLoginTest(t *testing.T) (*gin.Engine, *models.ClientMock, *PublicController, *httptest.ResponseRecorder, string) {
 	client := models.NewClientMock()

@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const refreshPath = "/api/refresh"
+const refreshPath = "/v1/refresh"
 
 // Generates refresh token for testing purposes
 func generateTestRefresh(t *testing.T, refresh string, router *gin.Engine) *RefreshOutput {
@@ -100,7 +100,7 @@ func TestRefreshExpired(t *testing.T) {
 	if err == nil {
 		t.Fatal("Failed to get error from response")
 	}
-	assert.Equal(t, http.StatusUnauthorized, res.StatusCode)
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 	assert.Equal(t, models.ErrTokenExpired.Error(), err.Error())
 }
 

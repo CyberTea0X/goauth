@@ -6,11 +6,6 @@ import (
 )
 
 // HealthCheck checks if the server is healthy
-//
-//	@Summary		healthcheck
-//	@Description	do healthcheck
-//	@Success	200
-//	@Router		/health_check [get]
 func (p *PublicController) HealthCheck(c *gin.Context) {
 	// TODO: implement https://pkg.go.dev/github.com/heptiolabs/healthcheck
 	c.Status(http.StatusOK)

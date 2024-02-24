@@ -32,11 +32,11 @@ func TestGuestSucceeds(t *testing.T) {
 		c.JSON(http.StatusOK, &guest)
 	})
 	guestInput := GuestInput{
-		FullName: guest.Name,
+		Name:     guest.Name,
 		DeviceId: 1,
 	}
 	jsonInput, _ := json.Marshal(guestInput)
-	req, _ := http.NewRequest("POST", "/api/guest", bytes.NewReader(jsonInput))
+	req, _ := http.NewRequest("POST", "/v1/guest", bytes.NewReader(jsonInput))
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 }
@@ -54,7 +54,7 @@ func TestGuestInvalidJSON(t *testing.T) {
 	}
 
 	jsonInput, _ := json.Marshal(guestInput)
-	req, _ := http.NewRequest("POST", "/api/guest", bytes.NewReader(jsonInput))
+	req, _ := http.NewRequest("POST", "/v1/guest", bytes.NewReader(jsonInput))
 	router.ServeHTTP(w, req)
 	res := w.Result()
 	defer res.Body.Close()
@@ -75,12 +75,12 @@ func TestGuestServiceError(t *testing.T) {
 		c.JSON(status, gin.H{"error": errMsg})
 	})
 	guestInput := GuestInput{
-		FullName: "Guest",
+		Name:     "Guest",
 		DeviceId: 1,
 	}
 
 	jsonInput, _ := json.Marshal(guestInput)
-	req, _ := http.NewRequest("POST", "/api/guest", bytes.NewReader(jsonInput))
+	req, _ := http.NewRequest("POST", "/v1/guest", bytes.NewReader(jsonInput))
 	router.ServeHTTP(w, req)
 	res := w.Result()
 	defer res.Body.Close()

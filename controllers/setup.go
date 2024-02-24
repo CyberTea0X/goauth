@@ -46,8 +46,8 @@ func NewController(tokensConfig models.TokensCfg, servicesConfig models.External
 func SetupRouter(c *PublicController) *gin.Engine {
 	router := gin.Default()
 
-	public := router.Group("api")
-	public.GET("health_check", c.HealthCheck)
+	public := router.Group("v1")
+	public.GET("health-check", c.HealthCheck)
 	public.GET("login", c.Login)
 	public.GET("refresh", c.Refresh)
 	public.GET("auth", c.Auth)

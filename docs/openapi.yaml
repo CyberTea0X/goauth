@@ -1,0 +1,256 @@
+openapi: 3.1.1
+info:
+  title: Simple Golang Authentication service
+  description: Authentication service that uses JWT refresh and access tokens to authenticate users
+  version: 1.0.0
+tags:
+  - name: v1
+    description: Version 1 of the API
+servers:
+  - url: "/v1"
+components:
+  schemas:
+    # Errors
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+    # Properties
+    ExpiresAt:
+      type: integer
+      format: int64
+      description: "Unix timestamp when the token expires"
+      example: 1708770828470
+    Role:
+      type: string
+      description: "Any role. All roles are specified by external service"
+      example: "teacher"
+    DeviceId:
+      type: integer
+      description: "The device ID must be unique for each device the user uses."
+      example: 1
+    AccessToken:
+      type: string
+      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDc3NTg2MzQsInVzZXJfaWQiOjEsInJvbGVzIjpbInRlc3QiXX0.9tg2uUko5C4-CAb3QFsnPghgLDsuqDGaX2BMzqJzlMI"
+      description: "JWT access token. Try to decode it on jwt.io to see json representation. This token is required for user authentication."
+    RefreshToken:
+      type: string
+      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDA0MTQyODAsInRva2VuX2lkIjoxLCJkZXZpY2VfaWQiOjEyMywidXNlcl9pZCI6MSwicm9sZXMiOlsidGVzdCJdfQ.SGNTo9SgPxB-db1COU0I5C2DZ8BRV2mHr0zAZrrizHU"
+      description: "JWT refresh token. Try to decode it on jwt.io to see json representation. This token needed to generate new refresh+access pair of tokens"
+    # Input
+    GuestInput:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Dulin Ivan Ivanovitch"
+        device_id:
+          $ref: '#/components/schemas/DeviceId'
+    # Output
+    LoginOutput:
+      type: object
+      properties:
+        access_token:
+          $ref: '#/components/schemas/AccessToken'
+        refresh_token:
+          $ref: '#/components/schemas/RefreshToken'
+        expires_at:
+          $ref: '#/components/schemas/ExpiresAt'
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+    RefreshOutput:
+      type: object
+      properties:
+        access_token:
+          $ref: '#/components/schemas/AccessToken'
+        refresh_token:
+          $ref: '#/components/schemas/RefreshToken'
+        expires_at:
+          $ref: '#/components/schemas/ExpiresAt'
+    GuestOutput:
+      type: object
+      properties:
+        access_token:
+          $ref: '#/components/schemas/AccessToken'
+        refresh_token:
+          $ref: '#/components/schemas/RefreshToken'
+        expires_at:
+          $ref: '#/components/schemas/ExpiresAt'
+  examples:
+    ErrNoTokenSpecified:
+      value:
+        error: "no token specified"
+      summary: "no token specified"
+    ErrInvalidToken:
+      value: 
+        error: "invalid token"
+      summary: "invalid token"
+    ErrTokenExpired:
+      value: 
+        error: "token expired"
+      summary: "token expired"
+    ErrInvalidJson:
+      value: 
+        error: "invalid JSON"
+      summary: "invalid JSON"
+    ErrTokenNotExists:
+      value: 
+        error: "token does not exist"
+      summary: "token does not exist"
+    ErrInvalidQuery:
+      value: 
+        error: "invalid query parameters"
+      summary: "invalid query parameters"
+    ErrInvalidPassword:
+      value: 
+        error: "invalid password"
+      summary: "invalid password"
+
+
+paths:
+  /health-check:
+    get:
+      tags:
+        - v1
+      operationId: healthCheckV1
+      description: "Checks if the server is healthy"
+      responses:
+        '200':
+          description: "Server is healthy"
+
+  /login:
+    get:
+      tags:
+        - v1
+      operationId: LoginUserV1
+      description: "Logins user"
+      parameters:
+        - in: query
+          name: username
+          schema:
+            type: string
+            example: "CyberTea"
+        - in: query
+          name: password
+          schema:
+            type: string
+            required: true
+            example: "qwerty123"
+        - in: query
+          name: email
+          schema:
+            type: string
+            example: "example@example.com"
+        - in: query
+          name: device_id
+          schema:
+            $ref: '#/components/schemas/DeviceId'
+      responses:
+        '200':
+          description: "User logged in"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginOutput'
+        '400':
+          description: "Bad request"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                err1:
+                  $ref: '#/components/examples/ErrInvalidQuery'
+
+  /refresh:
+    get:
+      tags:
+        - v1
+      parameters:
+        - in: query
+          name: "token"
+          description: "Refresh token. You can get one if you login or refresh"
+          schema:
+            $ref: '#/components/schemas/RefreshToken'
+      operationId: RefreshTokenV1
+      description: "Refreshes JWT refresh token, giving new pair of tokens"
+      responses:
+        '200':
+          description: "Tokens refreshed"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshOutput'
+        '400':
+          description: "Invalid token. See error examples"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                err1:
+                  $ref: '#/components/examples/ErrNoTokenSpecified'
+                err2:
+                  $ref: '#/components/examples/ErrTokenExpired'
+                err3:
+                  $ref: '#/components/examples/ErrInvalidToken'
+                err4:
+                  $ref: '#/components/examples/ErrTokenNotExists'
+
+  /auth:
+    get:
+      tags:
+        - v1
+      parameters:
+        - in: header
+          name: "Authorization"
+          description: "Authorization token. You can get one if you login or refresh"
+          schema:
+            $ref: '#/components/schemas/AccessToken'
+      operationId: IsAuthV1
+      description: "Checks if user is authenticated and token is valid"
+      responses:
+        '200':
+          description: "User is authenticated, token is still valid"
+        '401':
+          description: "Something wrong with token, so you are not authenticated"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                err1:
+                  $ref: '#/components/examples/ErrTokenExpired'
+                err2:
+                  $ref: '#/components/examples/ErrInvalidToken'
+
+  /guest:
+    post:
+      tags:
+        - v1
+      operationId: GuestRegisterV1
+      description: "Asks another service to create guest user and returns pair of tokens" 
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuestInput'
+      responses:
+        '200':
+          description: "Guest user created, tokens are returned"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuestOutput'
+        '400':
+          description: "Bad request"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                err1:
+                  $ref:  '#/components/examples/ErrInvalidJson'

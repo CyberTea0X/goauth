@@ -28,7 +28,7 @@ func (p *PublicController) Refresh(c *gin.Context) {
 	refreshClaims, err := token.RefreshFromString(inputToken, p.RefreshTokenCfg.Secret)
 
 	if errors.Is(err, jwt.ErrTokenExpired) {
-		c.JSON(http.StatusUnauthorized, models.ErrToMap(models.ErrTokenExpired))
+		c.JSON(http.StatusBadRequest, models.ErrToMap(models.ErrTokenExpired))
 		return
 	}
 
@@ -49,7 +49,7 @@ func (p *PublicController) Refresh(c *gin.Context) {
 		return
 	}
 
-	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.LifespanHour))
+	expiresAt := time.Now().Add(p.RefreshTokenCfg.Lifespan())
 	refreshClaims.ExpiresAt = jwt.NewNumericDate(expiresAt)
 	expiresUnix := refreshClaims.ExpiresAt.Unix()
 
@@ -69,7 +69,7 @@ func (p *PublicController) Refresh(c *gin.Context) {
 		return
 	}
 
-	expiresAt = time.Now().Add(time.Minute * time.Duration(p.AccessTokenCfg.LifespanMinute))
+	expiresAt = time.Now().Add(p.AccessTokenCfg.Lifespan())
 	accessClaims := token.NewAccess(refreshClaims.UserID, refreshClaims.Roles, expiresAt)
 	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 

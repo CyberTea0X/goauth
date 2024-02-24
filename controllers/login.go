@@ -11,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Structure describing the json fields that should be in the login request
 type LoginInput struct {
 	Username string `form:"username"`
 	Password string `form:"password" binding:"required"`
@@ -27,8 +26,9 @@ type LoginOutput struct {
 }
 
 // Function that is responsible for user authorization.
+//
 // In response to a successful authorization request, returns
-// Access Token and Refresh Token, as well as the time of death of the Access Token
+// access token and refresh token, as well as the time of death of the access token
 func (p *PublicController) Login(c *gin.Context) {
 
 	var input LoginInput
@@ -40,16 +40,20 @@ func (p *PublicController) Login(c *gin.Context) {
 	user, err := models.LoginUser(p.Client, p.LoginServiceURL, input.Username, input.Password, input.Email)
 
 	if err != nil {
-		targetErr := new(models.ExternalServiceError)
-		if errors.As(err, &targetErr) {
-			c.JSON(targetErr.Status, models.ErrToMap(targetErr))
+		externalErr := new(models.ExternalServiceError)
+		serviceErr := new(models.ConstantError)
+		if errors.As(err, &externalErr) {
+			c.JSON(externalErr.Status, models.ErrToMap(externalErr))
+		} else if errors.As(err, &serviceErr) {
+			c.JSON(http.StatusBadRequest, models.ErrToMap(err))
 		} else {
+			log.Println(err)
 			c.Status(http.StatusInternalServerError)
 		}
 		return
 	}
 
-	expiresAt := time.Now().Add(time.Hour * time.Duration(p.RefreshTokenCfg.LifespanHour))
+	expiresAt := time.Now().Add(p.RefreshTokenCfg.Lifespan())
 	refreshClaims := token.NewRefresh(-1, input.DeviceId, user.Id, user.Roles, expiresAt)
 
 	refreshId, err := refreshClaims.InsertOrUpdate(p.DB)
@@ -69,7 +73,7 @@ func (p *PublicController) Login(c *gin.Context) {
 		return
 	}
 
-	expiresAt = time.Now().Add(time.Minute * time.Duration(p.AccessTokenCfg.LifespanMinute))
+	expiresAt = time.Now().Add(p.AccessTokenCfg.Lifespan())
 	accessClaims := token.NewAccess(user.Id, user.Roles, expiresAt)
 	accessToken, err := accessClaims.TokenString(p.AccessTokenCfg.Secret)
 
