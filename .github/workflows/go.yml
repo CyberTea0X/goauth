@@ -22,8 +22,8 @@ jobs:
         DB_PASSWORD: goauth
       run : |
         sudo /etc/init.d/mysql start
-        sudo mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};'
-        sudo mysql -e 'CREATE USER '${{ env.DB_USER }}'@'localhost' IDENTIFIED BY '${{ env.DB_PASSWORD }}';'
+        sudo mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -proot
+        sudo mysql -e 'CREATE USER '${{ env.DB_USER }}'@'localhost' IDENTIFIED BY '${{ env.DB_PASSWORD }}';' -proot
 
     - name: Set up Go
       uses: actions/setup-go@v5
