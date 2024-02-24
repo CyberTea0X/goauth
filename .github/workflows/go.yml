@@ -26,7 +26,8 @@ jobs:
         echo database created!
         sudo mysql -e "CREATE USER '${{ env.DB_USER }}'@'localhost' IDENTIFIED BY '${{ env.DB_PASSWORD }}';" -proot
         echo user created!
-        sudo mysql -e "GRANT PRIVILEGE ON database.table TO 'username'@'host';" -proot
+        sudo mysql -e "GRANT ALL PRIVILEGES ON *.* TO '${{ env.DB_USER }}'@'localhost' WITH GRANT OPTION;" -proot
+        sudo mysql -e "FLUSH PRIVILEGES;" -proot
 
     - name: Set up Go
       uses: actions/setup-go@v5
