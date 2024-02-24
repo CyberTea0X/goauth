@@ -18,11 +18,12 @@ jobs:
     - name: "Mysql Setup"
       env:
         DB_DATABASE: goauth_test
-        DB_USER: root
-        DB_PASSWORD: root
+        DB_USER: goauth
+        DB_PASSWORD: goauth
       run : |
         sudo /etc/init.d/mysql start
-        sudo mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
+        sudo mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};'
+        sudo mysql -e 'CREATE USER '${{ env.DB_USER }}'@'localhost' IDENTIFIED BY '${{ env.DB_PASSWORD }}';'
 
     - name: Set up Go
       uses: actions/setup-go@v5
