@@ -100,7 +100,7 @@ func TestRefreshExpired(t *testing.T) {
 	if err == nil {
 		t.Fatal("Failed to get error from response")
 	}
-	assert.Equal(t, http.StatusUnauthorized, res.StatusCode)
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 	assert.Equal(t, models.ErrTokenExpired.Error(), err.Error())
 }
 
