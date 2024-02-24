@@ -10,7 +10,6 @@ on:
     branches: [ "main" ]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
@@ -24,16 +23,14 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-    - name: Shutdown Ubuntu MySQL (SUDO)
-      run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
-
-    - name: Set up MySQL
-      uses: mirromutth/mysql-action@v1.1
-      with:
-        mysql database: 'goauth_test' # Optional, default value is "test". The specified database which will be create
-        mysql user: 'goauth' # Required if "mysql root password" is empty, default is empty. The superuser for the specified database. Can use secrets, too
-        mysql password: 'goauth' # Required if "mysql user" exists. The password for the "mysql user"
-        character set server: 'utf8' # Optional, default value is 'utf8mb4'. The '--character-set-server' option for mysqld
+    - name: "Mysql Setup"
+      env:
+        DB_DATABASE: goauth_test
+        DB_USER: goauth
+        DB_PASSWORD: goauth
+      run : |
+        sudo /etc/init.d/mysql start
+        mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
 
     - name: Test
       run: go test -v ./...
