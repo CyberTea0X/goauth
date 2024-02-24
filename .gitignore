@@ -10,8 +10,8 @@
 
 # dotenv
 .env
+# actual config
 config.toml
-config_test.toml
 
 # config
 config.toml

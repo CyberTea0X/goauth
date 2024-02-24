@@ -6,9 +6,9 @@ timeout_seconds = 15
 host = "127.0.0.1"
 port = "3306"
 driver = "mysql"
-user = "someuser"
-password = "somepw"
-database = "goauth"
+user = "goauth"
+password = "goauth"
+database = "goauth_test"
 
 [tokens]
 
@@ -16,19 +16,18 @@ database = "goauth"
 # also available: lifespan_hour, lifespan_day
 # all lifetimes are summarized, so you can specify multiple
 lifespan_minute = 15
-secret = "FirstSuperMegaSecretKeyThatNoOneKnowsAbout!"
+secret = "secret1"
 
 [tokens.refresh]
-lifespan_day = 30
-secret = "SecondSuperMegaSecretKeyThatNoOneKnowsAbout!"
+lifespan_hour = 8790
+secret = "secret2"
 
 # External services that goauth uses
 [services]
-
 [services.guest]
 host = "127.0.0.1"
 port = "8081"
-path = "/api/guest"
+path = "/api/register"
 
 [services.login]
 host = "127.0.0.1"
