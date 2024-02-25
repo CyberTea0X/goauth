@@ -1,5 +1,8 @@
 # goauth
 
+[![Tests](https://github.com/CyberTea0X/goauth/actions/workflows/tests.yml/badge.svg)](https://github.com/CyberTea0X/goauth/actions/workflows/tests.yml)
+
+
 ## How to run
 
 ### Build from source
