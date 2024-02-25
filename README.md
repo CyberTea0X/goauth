@@ -6,6 +6,20 @@
 
 ## How to run
 
+### Dockerhub
+
+Copy config_test.toml from this repository and rename it to config.toml.
+Edit config.toml and set your preferred values.
+
+Then you can enter the following command:
+
+```bash
+docker run \
+    -v ./config.toml:/goauth/config.toml \
+    --network="host" \
+    --rm cybertea0x/goauth
+```
+
 ### Build from source
 
 Make sure you installed and configured the latest golang version.
