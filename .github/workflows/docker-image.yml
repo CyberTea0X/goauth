@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Docker CI
 
 on:
   push:
@@ -35,10 +35,10 @@ jobs:
         go-version-file: 'go.mod'
 
     - name: Build for Alpine
-      run: go build -ldflags '-linkmode external -w -extldflags "-static"' -v ./...
+      run: go build -ldflags '-linkmode external -w -extldflags "-static"' .
       
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag cybertea0x/goauth:$(date +%s)
+      run: docker build . -t cybertea0x/goauth:$(date +%s)
 
     - name: Log in to Docker Hub
       uses: docker/login-action@v3
