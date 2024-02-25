@@ -11,6 +11,7 @@ on:
       - 'Dockerfile'
       - 'LICENSE'
       - 'build_docs.sh'
+      - 'docs/**'
   pull_request:
     branches: [ "main" ]
     paths-ignore:
@@ -18,6 +19,7 @@ on:
       - 'Dockerfile'
       - 'LICENSE'
       - 'build_docs.sh'
+      - 'docs/**'
 
 jobs:
   build:
