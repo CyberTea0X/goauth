@@ -1,6 +1,7 @@
 # goauth
 
 [![Tests](https://github.com/CyberTea0X/goauth/actions/workflows/tests.yml/badge.svg)](https://github.com/CyberTea0X/goauth/actions/workflows/tests.yml)
+[![Docker CI](https://github.com/CyberTea0X/goauth/actions/workflows/docker-image.yml/badge.svg)](https://github.com/CyberTea0X/goauth/actions/workflows/docker-image.yml)
 
 
 ## How to run
