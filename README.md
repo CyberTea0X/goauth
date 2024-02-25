@@ -42,3 +42,8 @@ go build -o goauth
 Place the binary where you need it and then copy the `config_test.toml` file there.
 Rename `config_test.toml` to `config.toml`, configure this file, make sure mysql is running
 and then you can start the server by running the executable.
+
+### Documentation
+
+ - See documentation of this service [here](https://cybertea0x.github.io/goauth/openapi.html)
+ - See requirements for external service for this service [here](https://cybertea0x.github.io/goauth/external.html)
