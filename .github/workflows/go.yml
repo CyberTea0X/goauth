@@ -6,8 +6,18 @@ name: Go
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - 'README.md'
+      - 'Dockerfile'
+      - 'LICENSE'
+      - 'build_docs.sh'
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - 'README.md'
+      - 'Dockerfile'
+      - 'LICENSE'
+      - 'build_docs.sh'
 
 jobs:
   build:
