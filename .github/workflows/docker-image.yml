@@ -1,24 +1,10 @@
 name: Docker CI
 
 on:
-  push:
-    branches: [ "main" ]
-    paths-ignore:
-      - 'README.md'
-      - 'Dockerfile'
-      - 'LICENSE'
-      - 'build_docs.sh'
-      - '.github/workflows/go.yml'
-      - 'docs/**'
-  pull_request:
-    branches: [ "main" ]
-    paths-ignore:
-      - 'README.md'
-      - 'Dockerfile'
-      - 'LICENSE'
-      - 'build_docs.sh'
-      - '.github/workflows/go.yml'
-      - 'docs/**'
+  workflow_run:
+    workflows: ["Go"]
+    types:
+      - completed
 
 jobs:
 
