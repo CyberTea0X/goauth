@@ -2,9 +2,6 @@
 
 ## How to run
 
-Make sure you installed mysql and mysql server is running.
-Configure user, database and password for this service.
-
 ### Build from source
 
 Make sure you installed and configured the latest golang version.
