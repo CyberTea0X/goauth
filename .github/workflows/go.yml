@@ -12,6 +12,7 @@ on:
       - 'LICENSE'
       - 'build_docs.sh'
       - 'docs/**'
+      - '.github/workflows/docker-image.yml'
   pull_request:
     branches: [ "main" ]
     paths-ignore:
@@ -20,6 +21,7 @@ on:
       - 'LICENSE'
       - 'build_docs.sh'
       - 'docs/**'
+      - '.github/workflows/docker-image.yml'
 
 jobs:
   build:
