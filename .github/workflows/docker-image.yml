@@ -1,6 +1,13 @@
 name: Docker CI
 
 on:
+  workflow_dispatch:
+    inputs:
+      placeholder: # Just for workflow_dispatch to work
+        description: 'Are you sure?'
+        required: false
+        type: boolean
+        
   workflow_run:
     workflows: ["Go"]
     types:
